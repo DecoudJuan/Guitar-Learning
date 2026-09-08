@@ -1,60 +1,53 @@
 /**
- * Everything the player can change, plus saving it between visits.
+ * Everything the student can change, plus saving it between visits.
  *
  * Stored values are treated as untrusted: anything can be in localStorage, so
  * every field is validated and clamped on the way in and unknown keys are
  * dropped. A corrupted entry falls back to the defaults instead of throwing.
  */
 
-import { isTimbreId, type TimbreId } from "../audio";
 import { detectLanguage, isLanguage, type Language } from "../i18n";
-import { isScaleId, isTuning, type ModeId, type Tuning } from "../music/theory";
 
-const STORAGE_KEY = "manos.settings.v1";
+const STORAGE_KEY = "guitar.settings.v1";
+
+/**
+ * Acoustic or electric. This is not a sound — nothing here makes sound. It is
+ * the shape of the instrument: scale length, how wide the neck is at the nut,
+ * and how far up the fretboard a lesson may reasonably send you.
+ */
+export type GuitarKind = "acoustic" | "electric";
+
+/** Which hand frets. A right-handed guitar is fretted with the left hand. */
+export type Handedness = "right" | "left";
 
 export interface Settings {
   language: Language;
-  mode: ModeId;
-  /** Tonic of the key: 0 is C, 11 is B. */
-  root: number;
-  /** Reference pitch for the A above middle C. */
-  tuning: Tuning;
-  /** Whether a gesture plays a chord or a single scale note (melody). */
-  voicing: "chords" | "notes";
-  /** The strip of chips showing which fingers give which chord. */
-  showMap: boolean;
-  /** The gesture guide in the corner. Nice for learning, noise for playing. */
-  showLegend: boolean;
-  timbre: TimbreId;
-  /** The left hand's own timbre, used in duet mode. */
-  timbreLeft: TimbreId;
-  /** Drums running, conducted by the expression hand. */
-  drums: boolean;
-  /** Beats per minute for the drums. */
-  tempo: number;
-  /** Mirror everything played as MIDI, for external synths and DAWs. */
-  midi: boolean;
-  /** The chosen MIDI output's id. Empty means the first one found. */
-  midiOutput: string;
-  /** Silence the built-in synth while MIDI is on. */
-  midiMute: boolean;
-  reverb: number;
-  delay: number;
-  chorus: number;
-  drive: number;
+  guitar: GuitarKind;
+  handedness: Handedness;
   /**
-   * How much everything is smoothed, from 0 (immediate and twitchy) to 1 (slow
-   * and glassy). Drives the landmark filter, how long a gesture has to hold
-   * before it counts, and how fast volume and brightness follow the hand.
+   * How generous the judging is, 0 (a fingertip must sit near the middle of the
+   * box) to 1 (anywhere in the neighbourhood counts). A beginner needs room; a
+   * student polishing a shape wants the truth.
+   */
+  tolerance: number;
+  /** How long a shape has to be held, in seconds, before it counts as learnt. */
+  holdSeconds: number;
+  /**
+   * How much the tracking is smoothed, 0 (immediate, twitchy) to 1 (calm,
+   * a beat behind). Drives the landmark filter, how long a change has to hold,
+   * and how often the model runs.
    */
   smoothness: number;
-  /** Chord changes slide in pitch instead of being struck again. */
-  glide: boolean;
-  /** Both hands play their own voice instead of one playing and one shaping. */
-  duo: boolean;
-  /** Swaps which hand holds the chord. */
-  swap: boolean;
-  skeleton: boolean;
+  /** Beats per minute for the silent metronome used in change drills. */
+  tempo: number;
+  /** Draw the hand skeleton over the camera. */
+  showSkeleton: boolean;
+  /** Draw the detected fretboard grid over the camera. */
+  showFretboard: boolean;
+  /** Write the note name (E, A, D…) on each target. */
+  showNoteNames: boolean;
+  /** Try to find the neck automatically instead of using only the calibration. */
+  autoDetect: boolean;
 }
 
 export type SettingKey = keyof Settings;
@@ -62,79 +55,54 @@ export type SettingKey = keyof Settings;
 export function defaultSettings(): Settings {
   return {
     language: detectLanguage(),
-    mode: "guided",
-    root: 0,
-    tuning: 440,
-    voicing: "chords",
-    showMap: true,
-    showLegend: true,
-    timbre: "pad",
-    timbreLeft: "sub",
-    drums: false,
-    tempo: 96,
-    midi: false,
-    midiOutput: "",
-    midiMute: false,
-    reverb: 0.35,
-    delay: 0.12,
-    chorus: 0.25,
-    drive: 0,
-    smoothness: 0.6,
-    glide: false,
-    duo: false,
-    swap: false,
-    skeleton: true,
+    guitar: "acoustic",
+    handedness: "right",
+    tolerance: 0.55,
+    holdSeconds: 1,
+    smoothness: 0.55,
+    tempo: 72,
+    showSkeleton: true,
+    showFretboard: true,
+    showNoteNames: true,
+    autoDetect: true,
   };
 }
 
-/** Ranges for the effect sliders, shared by the UI and by validation. */
+/** Ranges for the sliders, shared by the UI and by validation. */
 export const RANGES = {
-  reverb: { min: 0, max: 1, step: 0.01 },
-  delay: { min: 0, max: 0.6, step: 0.01 },
-  chorus: { min: 0, max: 0.7, step: 0.01 },
-  drive: { min: 0, max: 1, step: 0.01 },
+  tolerance: { min: 0, max: 1, step: 0.01 },
+  holdSeconds: { min: 0.3, max: 4, step: 0.1 },
+  smoothness: { min: 0, max: 1, step: 0.01 },
+  tempo: { min: 40, max: 180, step: 1 },
 } as const;
 
-export type EffectKey = keyof typeof RANGES;
-export const EFFECT_KEYS = Object.keys(RANGES) as EffectKey[];
+export type RangeKey = keyof typeof RANGES;
+export const RANGE_KEYS = Object.keys(RANGES) as RangeKey[];
 
 /**
- * What the smoothness slider actually controls. At 0 the instrument answers the
- * moment your hand moves, at the cost of twitching; at 1 everything glides, at
- * the cost of feeling a beat behind.
+ * What the smoothness slider actually controls. Inherited from the gesture
+ * instrument this project grew out of, and it matters more here, not less: a
+ * fingertip judged against a fret box is a discrete decision, and a discrete
+ * decision taken sixty times a second on noisy input flickers.
  */
 export interface ResponseProfile {
   /** One Euro cutoff for the landmarks. Higher follows the hand more closely. */
   minCutoff: number;
   beta: number;
-  /** Frames a changed finger count must hold before the chord follows. */
+  /** Frames a changed reading must hold before it is believed. */
   framesNeeded: number;
-  /** How fast volume and brightness chase the expression hand, per frame. */
-  expressionGlide: number;
-  /**
-   * Minimum ms between hand-model inferences. In the immediate third of the
-   * slider the model runs on every camera frame — full speed for the player
-   * who asks for it, with the knob that already means that; elsewhere ~30 Hz,
-   * which reads everything a held gesture can say at half the CPU.
-   */
+  /** Minimum ms between hand-model inferences; 0 runs on every camera frame. */
   inferenceInterval: number;
 }
 
 const mix = (from: number, to: number, amount: number) => from + (to - from) * amount;
 
-/**
- * The default of 0.6 sits a little to the smooth side of centre. Landmark
- * filtering and expression tracking land near where they were before this
- * became adjustable; what is noticeably calmer is how long a chord has to be
- * held before it changes, which is where most of the roughness came from.
- */
 export function responseFor(smoothness: number): ResponseProfile {
   const s = Math.min(1, Math.max(0, smoothness));
   return {
     minCutoff: mix(2.8, 0.4, s),
     beta: mix(0.08, 0.015, s),
     framesNeeded: Math.round(mix(2, 9, s)),
-    expressionGlide: mix(0.3, 0.035, s),
     inferenceInterval: s < 0.35 ? 0 : 30,
   };
 }
@@ -145,6 +113,14 @@ function clampNumber(value: unknown, min: number, max: number, fallback: number)
 
 function readBoolean(value: unknown, fallback: boolean): boolean {
   return typeof value === "boolean" ? value : fallback;
+}
+
+export function isGuitarKind(value: unknown): value is GuitarKind {
+  return value === "acoustic" || value === "electric";
+}
+
+export function isHandedness(value: unknown): value is Handedness {
+  return value === "right" || value === "left";
 }
 
 export function loadSettings(): Settings {
@@ -168,27 +144,16 @@ export function loadSettings(): Settings {
   const data = stored as Record<string, unknown>;
 
   if (isLanguage(data.language)) settings.language = data.language;
-  if (data.mode === "free" || isScaleId(data.mode)) settings.mode = data.mode;
-  if (isTuning(data.tuning)) settings.tuning = data.tuning;
-  if (data.voicing === "chords" || data.voicing === "notes") settings.voicing = data.voicing;
-  settings.showMap = readBoolean(data.showMap, settings.showMap);
-  settings.showLegend = readBoolean(data.showLegend, settings.showLegend);
-  if (isTimbreId(data.timbre)) settings.timbre = data.timbre;
-  if (isTimbreId(data.timbreLeft)) settings.timbreLeft = data.timbreLeft;
-  settings.drums = readBoolean(data.drums, settings.drums);
-  settings.tempo = Math.round(clampNumber(data.tempo, 50, 200, settings.tempo));
-  settings.midi = readBoolean(data.midi, settings.midi);
-  if (typeof data.midiOutput === "string" && data.midiOutput.length < 256) settings.midiOutput = data.midiOutput;
-  settings.midiMute = readBoolean(data.midiMute, settings.midiMute);
-  settings.root = Math.round(clampNumber(data.root, 0, 11, settings.root));
-  for (const key of EFFECT_KEYS) {
+  if (isGuitarKind(data.guitar)) settings.guitar = data.guitar;
+  if (isHandedness(data.handedness)) settings.handedness = data.handedness;
+  for (const key of RANGE_KEYS) {
     settings[key] = clampNumber(data[key], RANGES[key].min, RANGES[key].max, settings[key]);
   }
-  settings.smoothness = clampNumber(data.smoothness, 0, 1, settings.smoothness);
-  settings.glide = readBoolean(data.glide, settings.glide);
-  settings.duo = readBoolean(data.duo, settings.duo);
-  settings.swap = readBoolean(data.swap, settings.swap);
-  settings.skeleton = readBoolean(data.skeleton, settings.skeleton);
+  settings.tempo = Math.round(settings.tempo);
+  settings.showSkeleton = readBoolean(data.showSkeleton, settings.showSkeleton);
+  settings.showFretboard = readBoolean(data.showFretboard, settings.showFretboard);
+  settings.showNoteNames = readBoolean(data.showNoteNames, settings.showNoteNames);
+  settings.autoDetect = readBoolean(data.autoDetect, settings.autoDetect);
 
   return settings;
 }

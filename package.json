@@ -1,10 +1,10 @@
 {
-  "name": "manos",
+  "name": "guitar-learning",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "copy-wasm": "mkdir -p public/mediapipe && cp node_modules/@mediapipe/tasks-vision/wasm/* public/mediapipe/",
+    "copy-wasm": "node scripts/copy-wasm.mjs",
     "predev": "npm run copy-wasm",
     "prebuild": "npm run copy-wasm",
     "dev": "vite",
@@ -18,5 +18,6 @@
   "devDependencies": {
     "typescript": "^5.9.3",
     "vite": "^7.1.12"
-  }
+  },
+  "description": "A guitar class that watches: the camera finds your fretboard and your hand and tells you which finger goes where."
 }

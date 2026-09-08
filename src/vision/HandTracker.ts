@@ -4,11 +4,14 @@
  * The model is MediaPipe Hands, which runs entirely inside the browser on the
  * GPU. Nothing is uploaded: the video never leaves the machine. The first load
  * fetches the model file (~8 MB) and the browser caches it from then on.
+ *
+ * Coordinates come out in the camera's own frame, unmirrored, because
+ * everything downstream has to agree with the guitar in the picture.
  */
 
 import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
 import { centroid, PALM, type Point3 } from "./landmarks";
-import { extensionState, flatFallback, mirror, readHand } from "./readHand";
+import { extensionState, flatFallback, readHand } from "./readHand";
 import { HandSmootherPool } from "./smoothing";
 import type { HandReading } from "./types";
 
@@ -173,9 +176,12 @@ export class HandTracker {
     const readings: HandReading[] = [];
 
     for (let i = 0; i < result.landmarks.length; i++) {
-      const mirrored = mirror(result.landmarks[i]);
-      const palm = centroid(mirrored, PALM);
-      const { points, slot } = this.smoothers.smooth(mirrored, palm, nowMs, claimed);
+      // Deliberately not mirrored. A guitar has to be read the way the camera
+      // sees it: mirroring would reverse the string order and turn every fret
+      // number into its opposite. See BITACORA, F1.
+      const raw2d = result.landmarks[i];
+      const palm = centroid(raw2d, PALM);
+      const { points, slot } = this.smoothers.smooth(raw2d, palm, nowMs, claimed);
 
       // Real-space landmarks are what make finger shape survive a turned hand.
       // If a build of the model ever stops providing them, the flat ones stand

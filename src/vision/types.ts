@@ -1,6 +1,6 @@
 import type { Point } from "./landmarks";
 
-/** Which hand this is, from the player's point of view (mirrored, like a mirror). */
+/** Which hand this is: the student's own left or right hand. */
 export type Side = "left" | "right";
 
 /**
@@ -12,7 +12,7 @@ export interface HandReading {
   /** Stable identity across frames, so state can be kept per hand. */
   id: number;
   side: Side;
-  /** All 21 landmarks, smoothed and mirrored to match what is on screen. */
+  /** All 21 landmarks, smoothed, in the camera's own frame (0..1). */
   points: Point[];
   /** Centre of the palm. */
   palm: Point;

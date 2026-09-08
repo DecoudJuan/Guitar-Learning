@@ -1,17 +1,9 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: "/manos/",
+  // Vercel serves the app from the domain root. Anything that builds a URL at
+  // runtime still goes through import.meta.env.BASE_URL, so moving it under a
+  // subpath again is a one-line change.
+  base: "/",
   server: { port: 3004, strictPort: true },
-  build: {
-    assetsInlineLimit(filePath) {
-      // Small assets are normally inlined as data: URLs, but an AudioWorklet
-      // has to be fetched from a real URL — and the production CSP only allows
-      // scripts from this origin, so a data: URL would be blocked outright.
-      // Returning false keeps this one as a file; undefined leaves the rest
-      // to Vite's usual rule.
-      if (filePath.endsWith("recorder-processor.js")) return false;
-      return undefined;
-    },
-  },
 });

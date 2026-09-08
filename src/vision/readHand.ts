@@ -50,7 +50,7 @@ const THUMB_OUT_ABOVE = 1.05;
 const THUMB_IN_BELOW = 0.98;
 
 export interface ReadHandInput {
-  /** Landmarks on the image, mirrored and smoothed. Used for position and lean. */
+  /** Landmarks on the image, smoothed. Used for position and lean. */
   points: Point[];
   /** The same landmarks in real space. Used for anything about finger shape. */
   world: Point3[];
@@ -94,9 +94,9 @@ export function readHand({ points, world, rawSide, confidence, id, previous }: R
   const spread = FINGERTIPS.reduce((total, i) => total + distance3(world[i], worldPalm), 0) / FINGERTIPS.length / handSize;
   const openness = remap(spread, 0.6, 1.5, 0, 1);
 
-  // The model labels handedness as if the image were not mirrored. The preview
-  // is mirrored so the player sees themselves, so the label is flipped to match.
-  const side: Side = rawSide === "Left" ? "right" : "left";
+  // The preview is not mirrored here, so the model's label already describes
+  // the real hand: its "Left" is the student's left hand.
+  const side: Side = rawSide === "Left" ? "left" : "right";
 
   return {
     id,
@@ -123,11 +123,6 @@ function centroid3(points: Point3[], indices: readonly number[]): Point3 {
     z += points[i].z;
   }
   return { x: x / indices.length, y: y / indices.length, z: z / indices.length };
-}
-
-/** Mirrors normalised landmarks so that moving right on screen reads as right. */
-export function mirror(points: Point[]): Point[] {
-  return points.map((p) => ({ x: 1 - p.x, y: p.y }));
 }
 
 /** The five booleans to remember for next frame's hysteresis. */

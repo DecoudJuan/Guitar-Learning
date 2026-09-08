@@ -15,12 +15,30 @@
  *     not disqualify them.
  */
 
-import type { ShapeId } from "../music/chords";
+/**
+ * The chord qualities a chart can name, reduced to the ones a guitar class can
+ * actually teach. Kept local on purpose: the parser has to stay independent of
+ * the chord library, so a chart can be read before anything decides whether a
+ * shape for it exists.
+ */
+export type ChordQuality =
+  | "maj"
+  | "min"
+  | "dom7"
+  | "maj7"
+  | "min7"
+  | "dom9"
+  | "min9"
+  | "maj6"
+  | "min6"
+  | "sus2"
+  | "sus4"
+  | "dim";
 
 const NOTE_PC: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 
 interface QualityRule {
-  shape: ShapeId;
+  shape: ChordQuality;
   /** Set when the written chord is not exactly playable and this is the nearest. */
   approximated?: boolean;
 }
@@ -84,8 +102,8 @@ export interface SongChord {
   token: string;
   /** Pitch class of the root, 0 to 11. */
   pc: number;
-  /** The shape it will be played as. */
-  shape: ShapeId;
+  /** The quality it will be taught as. */
+  shape: ChordQuality;
   /** The written quality, when the played one is only an approximation. */
   approximatedFrom?: string;
   /** A slash bass that will not sound — inversions are not playable yet. */

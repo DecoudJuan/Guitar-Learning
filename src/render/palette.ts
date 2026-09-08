@@ -1,38 +1,42 @@
 /**
- * Colour follows harmony. Major chords sit in gold, minor ones in pink, and the
- * more tension a chord carries the further it drifts towards violet — so the
- * screen tells you what you are hearing before you can name it.
+ * The colours the class speaks in.
+ *
+ * Only three carry meaning, and they are the three a student needs at a
+ * glance: this finger is right, this finger is wrong, this is where it should
+ * go. Everything else on screen is deliberately quiet so those three read from
+ * across a room.
  */
 
-import type { TriadQuality } from "../music/theory";
+export const INK = "#f4f1ea";
+export const DIM = "rgba(244, 241, 234, 0.55)";
 
-export interface Palette {
-  main: string;
-  glow: string;
-  soft: string;
-}
+/** A finger that is where the chord wants it. */
+export const RIGHT = "hsl(146 62% 55%)";
+export const RIGHT_SOFT = "hsl(146 62% 55% / 0.22)";
 
-export const NEUTRAL: Palette = {
-  main: "rgba(244, 241, 234, 0.75)",
-  glow: "rgba(244, 241, 234, 0.35)",
-  soft: "rgba(244, 241, 234, 0.16)",
+/** A finger on the wrong string or the wrong fret. */
+export const WRONG = "hsl(6 78% 62%)";
+export const WRONG_SOFT = "hsl(6 78% 62% / 0.22)";
+
+/** Where a finger still has to go: the target that is not filled yet. */
+export const TARGET = "hsl(38 92% 62%)";
+export const TARGET_SOFT = "hsl(38 92% 62% / 0.20)";
+
+/** The fretboard grid itself — present, never competing. */
+export const GRID = "rgba(244, 241, 234, 0.22)";
+export const GRID_STRONG = "rgba(244, 241, 234, 0.45)";
+
+/** The hand skeleton. */
+export const SKELETON = "rgba(120, 200, 255, 0.55)";
+
+/** One colour per fretting finger, so a diagram and the camera agree. */
+export const FINGER_COLOURS: Record<number, string> = {
+  1: "hsl(200 85% 62%)",
+  2: "hsl(268 70% 68%)",
+  3: "hsl(320 70% 66%)",
+  4: "hsl(48 90% 60%)",
 };
 
-/** Where each kind of chord sits on the colour wheel. */
-const HUES: Record<TriadQuality, (tension: number) => number> = {
-  maj: (tension) => 46 - tension * 14, // gold, warming towards amber
-  min: (tension) => 320 + tension * 10, // pink into magenta
-  dim: () => 270, // violet
-  aug: () => 22, // orange
-  sus: (tension) => 190 - tension * 60, // teal walking towards green
-};
-
-export function paletteFor(flavour: TriadQuality, tension: number): Palette {
-  const hue = (HUES[flavour] ?? HUES.maj)(tension);
-  const saturation = 90;
-  return {
-    main: `hsl(${hue} ${saturation}% 62%)`,
-    glow: `hsl(${hue} ${saturation}% 55% / 0.55)`,
-    soft: `hsl(${hue} ${saturation}% 70% / 0.18)`,
-  };
+export function fingerColour(finger: number): string {
+  return FINGER_COLOURS[finger] ?? DIM;
 }
