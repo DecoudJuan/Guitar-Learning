@@ -22,6 +22,7 @@ import { Calibrator } from "../ui/Calibrator";
 import { requireElement } from "../ui/dom";
 import { StartScreen } from "../ui/StartScreen";
 import { HandTracker } from "../vision/HandTracker";
+import { NeckDetector } from "../vision/NeckDetector";
 import type { Point } from "../vision/landmarks";
 import { clearCalibration, loadCalibration, saveCalibration } from "./calibration";
 import { loadSettings, responseFor, saveSettings, type Settings } from "./settings";
@@ -38,10 +39,13 @@ export class App {
   private tracker = new HandTracker(this.video, { maxHands: 2 });
   private start = new StartScreen();
   private calibrator = new Calibrator();
+  private detector = new NeckDetector();
 
   /** Null until the neck has been marked or found. */
   private fretboard: Fretboard | null = null;
   private running = false;
+  /** Set while the detector is being given a few frames to find the neck. */
+  private searchingUntil = 0;
 
   constructor() {
     document.documentElement.lang = this.settings.language;
@@ -50,8 +54,9 @@ export class App {
     this.start.whenStarted(() => void this.begin());
     this.start.render(this.t);
 
-    this.calibrator.whenDone((corners) => this.acceptCorners(corners));
+    this.calibrator.whenDone((corners, farFret) => this.acceptCorners(corners, farFret));
     this.calibrator.whenClosed(() => this.stage.classList.remove("calibrating"));
+    this.calibrator.whenAutoAsked(() => this.searchForNeck());
 
     requireElement("calibrate-toggle").addEventListener("click", () => this.toggleCalibration());
     this.canvas.addEventListener("click", (event) => this.onCanvasClick(event));
@@ -84,14 +89,42 @@ export class App {
   private restoreCalibration() {
     const stored = loadCalibration();
     if (!stored || stored.guitar !== this.settings.guitar) return;
-    this.fretboard = Fretboard.from(GUITARS[this.settings.guitar], stored.corners);
+    this.fretboard = Fretboard.from(GUITARS[this.settings.guitar], stored.corners, stored.farFret);
   }
 
-  private acceptCorners(corners: Corners) {
-    const board = Fretboard.from(GUITARS[this.settings.guitar], corners);
+  private acceptCorners(corners: Corners, farFret: number) {
+    const board = Fretboard.from(GUITARS[this.settings.guitar], corners, farFret);
     if (!board) return;
     this.fretboard = board;
-    saveCalibration({ guitar: this.settings.guitar, corners });
+    saveCalibration({ guitar: this.settings.guitar, corners, farFret });
+  }
+
+  /**
+   * Gives the detector a second of frames to find the neck.
+   *
+   * A second rather than one frame because a hand crossing the strings, or a
+   * moment of glare, ruins a single frame often enough to be the normal case;
+   * the first frame that yields a confident answer wins, and the search stops.
+   */
+  private searchForNeck() {
+    if (!this.running) return;
+    this.searchingUntil = performance.now() + 1000;
+    this.calibrator.setSearching(this.t);
+  }
+
+  /** Called once per frame while a search is running. */
+  private tickSearch(now: number) {
+    if (now > this.searchingUntil) {
+      this.searchingUntil = 0;
+      this.calibrator.setNotFound(this.t);
+      return;
+    }
+    const found = this.detector.detect(this.video);
+    // Below about half confidence the quad is usually a table edge or a
+    // door frame, and offering it costs more trust than saying nothing.
+    if (!found || found.confidence < 0.5) return;
+    this.searchingUntil = 0;
+    this.calibrator.setFound(found.corners, found.farFret, this.t);
   }
 
   private toggleCalibration() {
@@ -146,8 +179,12 @@ export class App {
     this.resize();
     this.running = true;
 
-    // Nothing can be taught until the neck is known, so the class opens on it.
-    if (!this.fretboard) this.toggleCalibration();
+    // Nothing can be taught until the neck is known, so the class opens on it —
+    // and, if asked to, tries to spare the student the four clicks entirely.
+    if (!this.fretboard) {
+      this.toggleCalibration();
+      if (this.settings.autoDetect) this.searchForNeck();
+    }
 
     requestAnimationFrame((time) => this.frame(time));
   }
@@ -157,6 +194,7 @@ export class App {
     requestAnimationFrame((next) => this.frame(next));
 
     const hands = this.tracker.read(time);
+    if (this.searchingUntil > 0) this.tickSearch(time);
 
     this.overlay.clear();
     if (this.fretboard && this.settings.showFretboard) {
@@ -174,6 +212,7 @@ export class App {
   }
 
   private statusLine(handCount: number): string {
+    if (this.searchingUntil > 0) return this.t("status.searching");
     if (!this.fretboard) return this.t("status.calibrate");
     if (handCount === 0) return this.t("status.noHand");
     return this.t("status.ready", { fps: this.tracker.fps, name: "—" });

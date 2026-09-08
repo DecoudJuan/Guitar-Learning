@@ -38,6 +38,7 @@ export const enDictionary = {
   "calibrate.auto.searching": "Looking for the neck…",
   "calibrate.auto.failed": "Could not find the neck. More light, or mark it by hand.",
   "calibrate.auto.found": "Neck found. Adjust it by hand if it sits wrong.",
+  "calibrate.flip": "Flip the sides",
   "calibrate.done": "Done",
   "calibrate.saved": "Neck saved.",
   "calibrate.recalibrate": "Mark the neck again",

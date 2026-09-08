@@ -20,6 +20,8 @@ const STORAGE_KEY = "guitar.calibration.v1";
 export interface StoredCalibration {
   guitar: GuitarKind;
   corners: Corners;
+  /** Which fret the far corners sit on — 12 when a student marked them. */
+  farFret: number;
 }
 
 function isPoint(value: unknown): value is Point {
@@ -61,7 +63,11 @@ export function loadCalibration(): StoredCalibration | null {
   if (!data.corners.every(isPoint)) return null;
 
   const corners = data.corners.map((point) => ({ x: point.x, y: point.y })) as Corners;
-  return { guitar: data.guitar, corners };
+  const farFret =
+    typeof data.farFret === "number" && Number.isFinite(data.farFret)
+      ? Math.min(17, Math.max(3, Math.round(data.farFret)))
+      : 12;
+  return { guitar: data.guitar, corners, farFret };
 }
 
 export function saveCalibration(calibration: StoredCalibration) {

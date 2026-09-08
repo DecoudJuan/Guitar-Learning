@@ -38,6 +38,7 @@ export const esDictionary: Dictionary = {
   "calibrate.auto.searching": "Buscando el mástil…",
   "calibrate.auto.failed": "No se encontró el mástil. Más luz, o marcalo a mano.",
   "calibrate.auto.found": "Mástil encontrado. Corregilo a mano si quedó torcido.",
+  "calibrate.flip": "Dar vuelta los lados",
   "calibrate.done": "Listo",
   "calibrate.saved": "Mástil guardado.",
   "calibrate.recalibrate": "Volver a marcar el mástil",

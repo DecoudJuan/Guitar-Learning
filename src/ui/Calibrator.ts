@@ -27,11 +27,13 @@ export class Calibrator {
   private notice = "";
   private t: Translate | null = null;
 
-  private doneHandler: ((corners: Corners) => void) | null = null;
+  /** Which fret the far pair sits on: 12 by hand, whatever the detector saw. */
+  private farFret = 12;
+  private doneHandler: ((corners: Corners, farFret: number) => void) | null = null;
   private closeHandler: (() => void) | null = null;
   private autoHandler: (() => void) | null = null;
 
-  whenDone(handler: (corners: Corners) => void) {
+  whenDone(handler: (corners: Corners, farFret: number) => void) {
     this.doneHandler = handler;
   }
 
@@ -54,7 +56,10 @@ export class Calibrator {
 
   start(t: Translate, keepPoints = false) {
     this.t = t;
-    if (!keepPoints) this.points = [];
+    if (!keepPoints) {
+      this.points = [];
+      this.farFret = 12;
+    }
     this.phase = "marking";
     this.notice = "";
     this.root.classList.remove("gone");
@@ -72,7 +77,9 @@ export class Calibrator {
     if (this.phase !== "marking" || this.points.length >= 4) return;
     this.points.push(point);
     if (this.points.length === 4) {
-      this.doneHandler?.(this.points.slice(0, 4) as Corners);
+      // Marked by hand means the 12th fret, because that is what was asked for.
+      this.farFret = 12;
+      this.doneHandler?.(this.points.slice(0, 4) as Corners, this.farFret);
     }
     this.render(t);
   }
@@ -84,11 +91,28 @@ export class Calibrator {
     this.render(t);
   }
 
-  setFound(corners: Corners, t: Translate) {
+  setFound(corners: Corners, farFret: number, t: Translate) {
     this.points = [...corners];
+    this.farFret = farFret;
     this.phase = "marking";
     this.notice = t("calibrate.auto.found");
-    this.doneHandler?.(corners);
+    this.doneHandler?.(corners, farFret);
+    this.render(t);
+  }
+
+  /**
+   * Swaps which side of the neck is the thick E.
+   *
+   * Nothing in the geometry says which side is which — a neck is the same
+   * shape either way round — so when the detector guesses, this is how a
+   * student says "the other way". Both ends swap together, or the quad folds
+   * over on itself into a bow tie.
+   */
+  private flip(t: Translate) {
+    if (this.points.length < 4) return;
+    const [a, b, c, d] = this.points;
+    this.points = [b, a, d, c];
+    this.doneHandler?.(this.points.slice(0, 4) as Corners, this.farFret);
     this.render(t);
   }
 
@@ -136,6 +160,10 @@ export class Calibrator {
     auto.disabled = this.phase === "searching";
     auto.addEventListener("click", () => this.autoHandler?.());
 
+    const flip = element("button", { className: "ghost", text: t("calibrate.flip"), attrs: { type: "button" } });
+    flip.disabled = this.points.length < 4;
+    flip.addEventListener("click", () => this.flip(t));
+
     const undo = element("button", { className: "ghost", text: t("calibrate.undo"), attrs: { type: "button" } });
     undo.disabled = this.points.length === 0;
     undo.addEventListener("click", () => this.undo(t));
@@ -148,7 +176,7 @@ export class Calibrator {
     done.disabled = this.points.length < 4;
     done.addEventListener("click", () => this.close());
 
-    row.append(auto, undo, reset, done);
+    row.append(auto, flip, undo, reset, done);
     this.card.append(row);
   }
 }

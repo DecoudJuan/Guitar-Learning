@@ -18,6 +18,7 @@ import type { Point } from "../vision/landmarks";
 import {
   boardOutline,
   boardPoint,
+  fretLine,
   fretWire,
   halfWidthAt,
   positionOf,
@@ -43,6 +44,8 @@ export class Fretboard {
   private constructor(
     readonly spec: GuitarSpec,
     readonly corners: Corners,
+    /** Which fret the far pair of corners sits on. Normally the 12th. */
+    readonly farFret: number,
     private readonly toImage: Matrix3,
     private readonly toBoardMatrix: Matrix3,
   ) {}
@@ -50,17 +53,22 @@ export class Fretboard {
   /**
    * Builds one, or returns null if those four points cannot describe a neck.
    * The corners are given in camera coordinates (0..1 across the frame).
+   *
+   * `farFret` exists for the automatic detector, which finds whichever fret
+   * happens to be the last one it can see rather than the one a student was
+   * asked to click. The maths does not care which fret it is, only that it
+   * knows — so the detector says, instead of pretending it found the 12th.
    */
-  static from(spec: GuitarSpec, corners: Corners): Fretboard | null {
+  static from(spec: GuitarSpec, corners: Corners, farFret = 12): Fretboard | null {
     if (quadArea(corners) < MIN_AREA) return null;
 
-    const board = Fretboard.boardCorners(spec);
+    const board = Fretboard.boardCorners(spec, farFret);
     const toImage = homographyFrom(board, corners);
     if (!toImage) return null;
     const toBoardMatrix = invert(toImage);
     if (!toBoardMatrix) return null;
 
-    return new Fretboard(spec, corners, toImage, toBoardMatrix);
+    return new Fretboard(spec, corners, farFret, toImage, toBoardMatrix);
   }
 
   /**
@@ -70,14 +78,15 @@ export class Fretboard {
    * every guitar, and it is far enough from the nut for the two to pin down
    * the perspective properly.
    */
-  private static boardCorners(spec: GuitarSpec): BoardPoint[] {
+  private static boardCorners(spec: GuitarSpec, farFret: number): BoardPoint[] {
+    const farX = fretLine(farFret);
     const atNut = halfWidthAt(spec, 0);
-    const atTwelfth = halfWidthAt(spec, 0.5);
+    const atFar = halfWidthAt(spec, farX);
     return [
       { x: 0, y: atNut }, // nut, thick E
       { x: 0, y: -atNut }, // nut, thin E
-      { x: 0.5, y: -atTwelfth }, // 12th fret, thin E
-      { x: 0.5, y: atTwelfth }, // 12th fret, thick E
+      { x: farX, y: -atFar }, // far fret, thin E
+      { x: farX, y: atFar }, // far fret, thick E
     ];
   }
 
