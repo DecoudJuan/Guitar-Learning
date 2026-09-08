@@ -38,8 +38,6 @@ export interface Settings {
    * and how often the model runs.
    */
   smoothness: number;
-  /** Beats per minute for the silent metronome used in change drills. */
-  tempo: number;
   /** Draw the hand skeleton over the camera. */
   showSkeleton: boolean;
   /** Draw the detected fretboard grid over the camera. */
@@ -60,7 +58,6 @@ export function defaultSettings(): Settings {
     tolerance: 0.55,
     holdSeconds: 1,
     smoothness: 0.55,
-    tempo: 72,
     showSkeleton: true,
     showFretboard: true,
     showNoteNames: true,
@@ -73,7 +70,6 @@ export const RANGES = {
   tolerance: { min: 0, max: 1, step: 0.01 },
   holdSeconds: { min: 0.3, max: 4, step: 0.1 },
   smoothness: { min: 0, max: 1, step: 0.01 },
-  tempo: { min: 40, max: 180, step: 1 },
 } as const;
 
 export type RangeKey = keyof typeof RANGES;
@@ -149,7 +145,6 @@ export function loadSettings(): Settings {
   for (const key of RANGE_KEYS) {
     settings[key] = clampNumber(data[key], RANGES[key].min, RANGES[key].max, settings[key]);
   }
-  settings.tempo = Math.round(settings.tempo);
   settings.showSkeleton = readBoolean(data.showSkeleton, settings.showSkeleton);
   settings.showFretboard = readBoolean(data.showFretboard, settings.showFretboard);
   settings.showNoteNames = readBoolean(data.showNoteNames, settings.showNoteNames);

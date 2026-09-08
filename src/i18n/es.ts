@@ -52,7 +52,6 @@ export const esDictionary: Dictionary = {
   "panel.tolerance": "Tolerancia",
   "panel.holdSeconds": "Sostener para pasar",
   "panel.smoothness": "Suavizado",
-  "panel.tempo": "Tempo",
   "panel.showSkeleton": "Mostrar la mano",
   "panel.showFretboard": "Mostrar la grilla del diapasón",
   "panel.showNoteNames": "Nombrar las notas",

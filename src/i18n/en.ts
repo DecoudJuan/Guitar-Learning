@@ -52,7 +52,6 @@ export const enDictionary = {
   "panel.tolerance": "Tolerance",
   "panel.holdSeconds": "Hold to pass",
   "panel.smoothness": "Smoothness",
-  "panel.tempo": "Tempo",
   "panel.showSkeleton": "Show the hand",
   "panel.showFretboard": "Show the fretboard grid",
   "panel.showNoteNames": "Name the notes",
