@@ -131,8 +131,7 @@ body {
 #start,
 #help,
 #lessons,
-#song,
-#calibrate {
+#song {
   position: absolute;
   inset: 0;
   display: grid;
@@ -141,6 +140,27 @@ body {
   background: rgba(6, 5, 9, 0.72);
   backdrop-filter: blur(6px);
   overflow-y: auto;
+}
+
+/* Marking the neck is not a modal: the clicks have to reach the camera behind
+   it, so this layer only occupies the bottom of the screen and lets everything
+   else through. */
+#calibrate {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: grid;
+  justify-items: center;
+  padding: 18px;
+  pointer-events: none;
+}
+
+#calibrate .card {
+  pointer-events: auto;
+}
+
+#calibrate .step {
+  color: var(--ink) !important;
+  font-size: 15px !important;
 }
 
 .card {
