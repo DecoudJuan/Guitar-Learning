@@ -159,6 +159,46 @@ export class Overlay {
     context.restore();
   }
 
+  /**
+   * An arrow from where a finger is to where it should be.
+   *
+   * This is the single most useful thing on the screen. A red dot says the
+   * finger is wrong; an arrow says which way to move it, which is the whole
+   * correction in one glance and in no language.
+   */
+  drawNudge(from: Point, to: Point, colour: string) {
+    const context = this.context;
+    const a = this.viewport.toCanvas(from);
+    const b = this.viewport.toCanvas(to);
+    const length = Math.hypot(b.x - a.x, b.y - a.y);
+    // Too short to point anywhere: the dot already says it.
+    if (length < 12 * this.unit) return;
+
+    const angle = Math.atan2(b.y - a.y, b.x - a.x);
+    // Stop short of the target so the arrowhead does not sit inside the circle.
+    const stop = { x: b.x - Math.cos(angle) * 16 * this.unit, y: b.y - Math.sin(angle) * 16 * this.unit };
+
+    context.save();
+    context.strokeStyle = colour;
+    context.fillStyle = colour;
+    context.lineWidth = 2.5 * this.unit;
+    context.lineCap = "round";
+
+    context.beginPath();
+    context.moveTo(a.x, a.y);
+    context.lineTo(stop.x, stop.y);
+    context.stroke();
+
+    const head = 9 * this.unit;
+    context.beginPath();
+    context.moveTo(stop.x, stop.y);
+    context.lineTo(stop.x - Math.cos(angle - 0.4) * head, stop.y - Math.sin(angle - 0.4) * head);
+    context.lineTo(stop.x - Math.cos(angle + 0.4) * head, stop.y - Math.sin(angle + 0.4) * head);
+    context.closePath();
+    context.fill();
+    context.restore();
+  }
+
   /** A short line of guidance, centred low in the frame. */
   drawHint(text: string, fromTop = 0.86) {
     if (!text) return;
