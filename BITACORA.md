@@ -104,3 +104,47 @@ que entrenar: la mano tiene que *quedarse*.
 **Decisión: el progreso vive en localStorage y se trata como hostil.** Igual
 que los ajustes: se valida y se recorta al cargar. Un progreso corrupto vuelve
 a cero en vez de romper la app.
+
+---
+
+## 2026-09-08 — F8/F9: dibujar y la interfaz
+
+**Decisión: la flecha.** Un punto rojo dice que el dedo está mal; una flecha
+desde donde está hasta donde va dice la corrección entera, de un vistazo y sin
+idioma. Es lo más útil que hay en pantalla y por eso `chordLayer` existe como
+capa separada del juez: el juez decide qué es verdad, esa capa decide qué vale
+la pena mostrar, y casi todo lo cierto sobre un acorde mal puesto es ruido.
+
+**Decisión: el diagrama clásico se mantiene.** Es la notación que el alumno va a
+encontrar en cualquier cancionero. Una clase que enseña su propia notación
+privada lo deja sin poder leer nada más. Los mismos tres colores en la cámara y
+en el diagrama unen las dos vistas sin explicación.
+
+**Decisión: se elimina el ajuste de tempo.** Quedó heredado de la idea del
+metrónomo visual para los cambios cronometrados, pero nada lo usa. Una perilla
+que no hace nada es una mentira sobre lo que el programa puede hacer; vuelve
+cuando vuelva la función.
+
+**Decisión: la práctica libre llega a toda la biblioteca desde el primer
+minuto.** El bloqueo de lecciones ordena un curso para quien no sabe qué
+practicar después; nunca quiso negarle un Do a alguien que quiere probarlo.
+
+---
+
+## 2026-09-08 — F10: deploy
+
+**Qué se hizo.** CSP ajustada (sin micrófono, sin MIDI: se apagan en la
+`Permissions-Policy` en vez de quedar simplemente sin usar), `base` de Vite de
+vuelta a `/` para Vercel, y README, SECURITY y CLAUDE reescritos alrededor de lo
+que la app es ahora.
+
+**Decisión: SECURITY.md se reescribe entero en vez de recortarse.** El documento
+original prometía cosas sobre grabaciones, micrófono y MIDI que ya no existen.
+Un documento de seguridad que describe un programa anterior es peor que no
+tenerlo: se lee como una promesa verificada cuando ya no verifica nada.
+
+**Pendiente honesto.** No hay tests automáticos — la única red es `tsc` en modo
+estricto. La lógica difícil (homografía, geometría, juez, viewport) está escrita
+como funciones puras justamente para que se pueda probar sin cámara el día que
+se agregue un runner; no se agregó ahora para no meter una dependencia de
+desarrollo en la misma pasada en que se sacaron todas.
