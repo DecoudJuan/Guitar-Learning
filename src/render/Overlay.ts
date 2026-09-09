@@ -199,6 +199,35 @@ export class Overlay {
     context.restore();
   }
 
+  /**
+   * Small labels pinned to points in the picture — the fret numbers along the
+   * edge of the neck.
+   *
+   * Drawn with a dark backing rather than a plain fill: the numbers sit over
+   * whatever the room happens to be, and a bare white glyph on a pale wall is
+   * invisible exactly when a student is looking for it.
+   */
+  drawLabels(labels: { at: Point; text: string }[], colour = DIM) {
+    if (labels.length === 0) return;
+    const context = this.context;
+    context.save();
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.font = `${Math.round(13 * this.unit)}px ui-sans-serif, system-ui, sans-serif`;
+
+    for (const label of labels) {
+      const p = this.viewport.toCanvas(label.at);
+      const radius = 10 * this.unit;
+      context.fillStyle = "rgba(10, 9, 14, 0.55)";
+      context.beginPath();
+      context.arc(p.x, p.y, radius, 0, Math.PI * 2);
+      context.fill();
+      context.fillStyle = colour;
+      context.fillText(label.text, p.x, p.y);
+    }
+    context.restore();
+  }
+
   /** A short line of guidance, centred low in the frame. */
   drawHint(text: string, fromTop = 0.86) {
     if (!text) return;

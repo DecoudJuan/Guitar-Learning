@@ -87,18 +87,30 @@ export class Diagram {
     }
 
     if (showsNut) {
+      // The nut, drawn thick. To a guitarist that says "this is the top of the
+      // neck"; to a beginner it says nothing at all, which is why the numbers
+      // below exist regardless.
       context.lineWidth = 5;
       context.strokeStyle = INK;
       context.beginPath();
       context.moveTo(left - 2, top);
       context.lineTo(right + 2, top);
       context.stroke();
-    } else {
-      context.fillStyle = DIM;
-      context.font = "14px ui-sans-serif, system-ui, sans-serif";
-      context.textAlign = "right";
-      context.textBaseline = "middle";
-      context.fillText(String(startFret), left - 8, top + fretGap / 2);
+    }
+
+    // Every fret numbered down the side.
+    //
+    // The diagram used to print one number, and only on chords that start away
+    // from the nut. That is the convention in a songbook, where the reader
+    // already knows a chord box counts frets downwards — which is exactly the
+    // thing a beginner does not know yet, and the one thing they need in order
+    // to connect this drawing to the wood in their hands.
+    context.fillStyle = DIM;
+    context.font = "13px ui-sans-serif, system-ui, sans-serif";
+    context.textAlign = "right";
+    context.textBaseline = "middle";
+    for (let row = 0; row < ROWS; row++) {
+      context.fillText(String(startFret + row), left - 9, top + (row + 0.5) * fretGap);
     }
 
     // The marks above the box: open, or don't play.

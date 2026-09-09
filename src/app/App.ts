@@ -17,7 +17,7 @@
 import { chordById, shapesFor, targetOf, type ChordShape, type ChordTarget } from "../guitar/chords";
 import { FretReader, type NeckReading } from "../guitar/FretReader";
 import { Fretboard, type CornerKind, type Corners } from "../guitar/Fretboard";
-import { GUITARS } from "../guitar/geometry";
+import { fretCentre, GUITARS, halfWidthAt } from "../guitar/geometry";
 import { firstProblem, judge, type ChordJudgement, type Verdict } from "../guitar/judge";
 import { createTranslator, LOCALES, type Translate, type TranslationKey } from "../i18n";
 import { lessonById, type Lesson } from "../lesson/curriculum";
@@ -401,8 +401,22 @@ export class App {
     hands: HandReading[],
   ) {
     if (board && this.settings.showFretboard) {
-      const lastFret = GUITARS[this.settings.guitar].maxTeachableFret;
+      const spec = GUITARS[this.settings.guitar];
+      const lastFret = spec.maxTeachableFret;
       this.overlay.drawFretboard(board.outline(lastFret), board.fretLines(lastFret), board.stringLines(lastFret));
+
+      // The frets, numbered along the thick-E edge. Being told "it goes on the
+      // second fret" is only useful to someone who can already count frets on
+      // sight, and the whole point of this app is that they cannot yet.
+      const numbers = [];
+      for (let fret = 1; fret <= lastFret; fret++) {
+        const x = fretCentre(fret);
+        numbers.push({
+          at: board.toCamera({ x, y: halfWidthAt(spec, x) * 1.75 }),
+          text: String(fret),
+        });
+      }
+      this.overlay.drawLabels(numbers);
     }
 
     if (this.settings.showSkeleton) this.overlay.drawHands(hands);
