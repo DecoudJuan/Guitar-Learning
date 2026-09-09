@@ -33,6 +33,10 @@ looking.
 
 ## What is in it
 
+- **A tuner**, because a class that starts on an out-of-tune guitar teaches the
+  wrong thing. Six rows, one per string, each ticking off when it holds in tune.
+  It is the only part of the app that listens, and it listens only while it is
+  open.
 - **A course, in the order a teacher gives it.** Em first, because it is two
   fingers on adjacent strings; C later, because your hand has to open; the barre
   last, because it is the wall and arriving with four working chords is the
@@ -84,7 +88,8 @@ straight lines.
 ## Privacy
 
 - Everything runs inside your browser. The camera image is never uploaded —
-  there is no server to upload it to.
+  there is no server to upload it to. The microphone is opened only while the
+  tuner is on screen, is never recorded, and never reaches the speakers.
 - No accounts, no analytics, no cookies. Your settings, your marked neck, your
   progress and your pasted chart live in your browser's local storage.
 - The only network request is the one-time download of the hand-tracking model.

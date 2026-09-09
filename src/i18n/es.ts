@@ -120,6 +120,20 @@ export const esDictionary: Dictionary = {
   "string.5": "la",
   "string.6": "mi grave",
 
+  "tuner.toggle": "afinar",
+  "tuner.title": "Afiná la guitarra",
+  "tuner.intro":
+    "Tocá una cuerda al aire por vez. Cada una se tilda cuando se mantiene afinada — el micrófono escucha solamente mientras esto está abierto.",
+  "tuner.silence": "tocá una cuerda al aire",
+  "tuner.flat": "{cents} cents grave — tensala",
+  "tuner.sharp": "{cents} cents aguda — aflojala",
+  "tuner.ok": "afinada",
+  "tuner.reference": "Afinación estándar, Mi La Re Sol Si Mi · referencia La = 440 Hz",
+  "tuner.again": "Empezar de nuevo",
+  "tuner.close": "Listo",
+  "tuner.denied":
+    "Sin micrófono no hay afinador — es lo único que la cámara no puede ver. No se graba ni se sube nada.",
+
   "song.toggle": "canción",
   "song.title": "Practicar una canción",
   "song.intro": "Pegá un cifrado. La clase convierte cada acorde en una forma para aprender.",

@@ -33,6 +33,7 @@ import { LessonList } from "../ui/LessonList";
 import { Panel } from "../ui/Panel";
 import { SongPanel } from "../ui/SongPanel";
 import { StartScreen } from "../ui/StartScreen";
+import { TunerPanel } from "../ui/TunerPanel";
 import { HandTracker } from "../vision/HandTracker";
 import type { Point } from "../vision/landmarks";
 import type { HandReading } from "../vision/types";
@@ -66,6 +67,10 @@ export class App {
     () => this.t,
   );
   private songs = new SongPanel(() => this.t);
+  private tunerPanel = new TunerPanel(
+    () => this.t,
+    () => this.settings.language,
+  );
   private panel: Panel;
 
   /** Null until the neck has been marked or found. */
@@ -120,6 +125,7 @@ export class App {
     document.documentElement.lang = this.settings.language;
     requireElement("calibrate-toggle").textContent = this.t("calibrate.title");
     requireElement("lesson-toggle").textContent = this.t("lesson.toggle");
+    requireElement("tuner-toggle").textContent = this.t("tuner.toggle");
     requireElement("song-toggle").textContent = this.t("song.toggle");
     requireElement("help-toggle").textContent = this.t("help.toggle");
     requireElement("panel-toggle").textContent = this.t("panel.toggle");
@@ -132,6 +138,7 @@ export class App {
     // rebuilding — which is what makes switching language mid-session work.
     this.help.render();
     if (this.lessons.open) this.lessons.render();
+    if (this.tunerPanel.open) this.tunerPanel.render();
   }
 
   /** One slider, three places: the filter, the hysteresis, and the model rate. */
@@ -345,6 +352,8 @@ export class App {
 
     const hands = this.tracker.read(time);
     if (this.searchingUntil > 0) this.tickSearch(time);
+    // The tuner throttles its own analysis; this only has to keep asking.
+    this.tunerPanel.tick(time);
 
     this.overlay.clear();
 

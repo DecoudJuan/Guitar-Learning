@@ -26,6 +26,26 @@ export function noteAt(stringNumber: number, fret: number): number {
   return open + Math.max(0, Math.round(fret));
 }
 
+/**
+ * The frequency of a MIDI note. Equal temperament, A above middle C as the
+ * anchor — the same arithmetic every tuner on earth uses.
+ */
+export function frequencyOf(midi: number, referenceA = 440): number {
+  return referenceA * Math.pow(2, (midi - 69) / 12);
+}
+
+/**
+ * How far one frequency is from another, in cents — hundredths of a semitone.
+ *
+ * Cents rather than hertz because the ear works in ratios: six hertz flat is
+ * inaudible on the thin E and a quarter-tone on the thick one, and a tuner
+ * that reported hertz would be lying about how wrong the string is.
+ */
+export function centsBetween(frequency: number, target: number): number {
+  if (frequency <= 0 || target <= 0) return 0;
+  return 1200 * Math.log2(frequency / target);
+}
+
 export function pitchClass(midi: number): number {
   return ((midi % 12) + 12) % 12;
 }

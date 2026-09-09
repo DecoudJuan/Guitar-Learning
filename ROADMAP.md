@@ -73,6 +73,12 @@ Panel de ajustes (tipo de guitarra, zurdo/diestro, tolerancia, idioma),
 selector de lección, importación de cifrados para practicar canciones, y la
 guía de calibración. Traducciones completas es/en.
 
+### F11 — Afinador ✅
+Lo único que la cámara no puede hacer. Micrófono abierto solo mientras el panel
+está abierto, detección de tono por MPM, y las seis cuerdas como una lista que
+se va tildando. Rompe la promesa de "no hay micrófono" y por eso viene con
+SECURITY.md reescrito en el mismo commit.
+
 ### F10 — Deploy ✅
 `vercel.json` con la CSP ajustada, README reescrito, `npm run build` limpio.
 
@@ -83,7 +89,8 @@ guía de calibración. Traducciones completas es/en.
 Lo que queda anotado como próximo, en orden de valor:
 
 - **Tests.** La homografía, la geometría de trastes, el juez y el viewport son
-  funciones puras esperando un runner.
+  funciones puras esperando un runner. El detector de tono ya se verificó contra
+  señales sintéticas a mano; ese chequeo merece dejar de ser un script temporal.
 - **Seguir el mástil.** Hoy la calibración es estática: si se mueve la guitarra
   hay que volver a marcarla. El detector ya sabe encontrar el cuadrilátero;
   falta correrlo cada tanto y corregir la homografía en vez de reemplazarla.

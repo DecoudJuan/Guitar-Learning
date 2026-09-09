@@ -7,7 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A browser guitar class. The camera finds the fretboard and the fretting hand and
 corrects finger placement in real time. **It produces no sound at all** — the
 sound is the student's guitar. There is no synth, no MIDI, no audio recording,
-and adding any would be a regression, not a feature. "Acoustic" and "electric"
+and adding any would be a regression, not a feature. It does *listen*, in
+exactly one place: the tuner (`src/tuner/`), because tuning is the one thing a
+camera cannot do. "Acoustic" and "electric"
 are *guitar shapes* (scale length, neck width, reachable frets), never timbres.
 
 It was forked from `manos`, a gesture instrument; the vision pipeline is
@@ -55,6 +57,7 @@ Zero backend, one runtime dependency (`@mediapipe/tasks-vision`), no framework.
    says the one thing worth saying.
 
 ```
+tuner/     the only audio in the app: microphone -> pitch (MPM) -> nearest open string
 vision/    camera + MediaPipe -> HandReading; homography; classic-CV neck detector
 guitar/    the instrument: geometry, tuning, chord library, Fretboard, FretReader, judge
 lesson/    curriculum, Session (the hold-to-pass state machine), progress
@@ -105,6 +108,17 @@ Related invariant: finger shape is measured on the model's **world**
 (real-space) landmarks so it survives a turned hand; position uses the flat
 image landmarks.
 
+### The tuner
+
+`tuner/pitch.ts` is the McLeod Pitch Method (normalised square difference), not
+plain autocorrelation — whose peaks shrink with lag and therefore read the thick
+E as its own octave. It picks the *first* peak within 90% of the best, not the
+best, for the same octave reason. It is pure over a sample buffer, so it can be
+checked against synthesised plucks with no hardware; `MIN_CLARITY` was set from
+those measurements, not guessed, and it prefers answering nothing to answering
+wrong. `tuner/strings.ts` maps a pitch to the nearest *open string* in cents —
+a beginner needs "that is your D string", not "F#, 40 cents flat".
+
 ### The neck detector
 
 `vision/NeckDetector.ts` is classic CV on purpose — Sobel, PCA for the neck
@@ -124,8 +138,12 @@ confidence threshold, and **cannot** tell the thick E side from the thin E side
 - **Exactly one outbound request** — the hand model from
   `storage.googleapis.com`. The CSP's `connect-src` allows nothing else, so a
   new fetch fails in production only.
-- No analytics, cookies, accounts, web fonts, third-party scripts, microphone,
-  or file downloads.
+- No analytics, cookies, accounts, web fonts, third-party scripts, or file
+  downloads.
+- **The microphone is the tuner's and nothing else's.** Opened on
+  `TunerPanel.setOpen(true)`, released on close and on `visibilitychange`. It is
+  connected to an `AnalyserNode` and never to a destination — connecting it
+  downstream would both break the privacy claim and create feedback.
 
 ## i18n
 

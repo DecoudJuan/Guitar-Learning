@@ -120,6 +120,20 @@ export const enDictionary = {
   "string.5": "A",
   "string.6": "thick E",
 
+  "tuner.toggle": "tune",
+  "tuner.title": "Tune the guitar",
+  "tuner.intro":
+    "Play one open string at a time. Each one ticks off when it holds in tune — the microphone is only listening while this is open.",
+  "tuner.silence": "play an open string",
+  "tuner.flat": "{cents} cents flat — tighten it",
+  "tuner.sharp": "{cents} cents sharp — loosen it",
+  "tuner.ok": "in tune",
+  "tuner.reference": "Standard tuning, E A D G B E · reference A = 440 Hz",
+  "tuner.again": "Start over",
+  "tuner.close": "Done tuning",
+  "tuner.denied":
+    "Without the microphone there is no tuner — it is the one thing the camera cannot see. Nothing is recorded or uploaded.",
+
   "song.toggle": "song",
   "song.title": "Practise a song",
   "song.intro": "Paste a chord chart. The class turns each chord into a shape to learn.",

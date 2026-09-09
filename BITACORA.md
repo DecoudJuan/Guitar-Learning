@@ -148,3 +148,45 @@ estricto. La lógica difícil (homografía, geometría, juez, viewport) está es
 como funciones puras justamente para que se pueda probar sin cámara el día que
 se agregue un runner; no se agregó ahora para no meter una dependencia de
 desarrollo en la misma pasada en que se sacaron todas.
+
+---
+
+## 2026-09-08 — F11: el afinador
+
+**Qué se hizo.** Se agregó `src/tuner/`: micrófono, detección de tono y mapeo a
+la cuerda al aire más cercana, con un panel de seis filas que se van tildando.
+
+**Decisión: vuelve el micrófono, y se dice.** Es la única excepción a "todo se
+resuelve mirando", y no es negociable: una cuerda floja y una tensa son la misma
+foto. La CSP y la `Permissions-Policy` se abren para `microphone=(self)` y
+SECURITY.md pasa a describirlo en detalle. Lo que se mantiene entero es el
+contrato: se abre al abrir el afinador, se cierra —pistas detenidas, contexto
+cerrado— al cerrarlo o al ocultarse la pestaña, y la señal llega a un
+`AnalyserNode` y a ningún lado más. Nunca a los parlantes, que es además lo que
+hace imposible el acople con una guitarra frente a la notebook.
+
+**Decisión: MPM y no autocorrelación pelada.** La autocorrelación simple tiene
+picos que se achican con el lag, así que lee el mi grave como su propia octava:
+el alumno ve que su cuerda más gruesa está una octava alta y un afinador que no
+se decide. La normalización del NSDF elimina ese sesgo. Por la misma razón se
+elige el *primer* pico que llegue al 90% del mejor y no el mejor: una cuerda
+pulsada es rica en armónicos y el pico más alto suele ser la octava.
+
+**Decisión: los umbrales salen de medir, no de estimar.** Contra pulsaciones
+sintéticas con ruido blanco encima, la claridad cae con la señal: limpia da
+0.99+, con ruido moderado 0.97 y el error sigue debajo de dos cents, y con
+ruido fuerte da 0.88 mientras la respuesta ya se corrió veintitrés cents.
+`MIN_CLARITY` quedó en 0.93, arriba de ese punto. Un afinador que calla en una
+sala ruidosa es mejor que uno que miente con seguridad.
+
+**Decisión: se busca la cuerda al aire, no la nota cromática.** "Fa#, 40 cents
+bajo" sirve a quien ya sabe. El principiante necesita "esa es la cuarta, tensala".
+El límite para reclamar una cuerda bajó de 250 a 150 cents: con 250, como la
+distancia máxima entre cuerdas contiguas es de cinco semitonos, *cualquier* tono
+reclamaba alguna cuerda — incluida una nota pisada, que aparecía como una cuerda
+al aire horriblemente desafinada y mandaba al alumno a mover una clavija que
+estaba bien.
+
+**Decisión: la cuerda tiene que *sostenerse* afinada para tildarse.** Misma
+razón que el acorde: una clavija que pasa por la tensión correcta camino a otro
+lado no es una cuerda afinada.
