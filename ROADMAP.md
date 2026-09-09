@@ -73,6 +73,15 @@ Panel de ajustes (tipo de guitarra, zurdo/diestro, tolerancia, idioma),
 selector de lección, importación de cifrados para practicar canciones, y la
 guía de calibración. Traducciones completas es/en.
 
+### F14 — El detector deja de mentir, y el mástil recordado se sigue ✅ (a medias)
+El seguimiento no funcionaba nunca después de recargar la página: la
+calibración leída de `localStorage` llega antes que la cámara y el tracker se
+quedaba sin anclas. El detector automático aprendió a rechazar cualquier cosa
+rayada que no tenga trastes, con dos arneses sin cámara (`fret-check`,
+`scene.mjs` + `neck-check`) y, por fin, con siete fotos reales, que son las que
+dijeron dónde falla de verdad. Sigue apagado: ya no inventa, y en una foto real
+no llega ni a mirar la guitarra.
+
 ### F13 — Registro por homografía ✅
 El mástil se sigue solo cuando la guitarra se mueve: una grilla de anclas sobre
 el diapasón, cada una con su parche de imagen, rastreadas por correlación
@@ -103,12 +112,21 @@ Lo que queda anotado como próximo, en orden de valor:
 - **Tests.** La homografía, la geometría de trastes, el juez y el viewport son
   funciones puras esperando un runner. El detector de tono ya se verificó contra
   señales sintéticas a mano; ese chequeo merece dejar de ser un script temporal.
-- **Que el detector automático funcione.** Lo que falta no es afinar una
-  constante: falta separar un mástil de cualquier otra cosa rayada. Las dos
-  pistas sin usar son la *progresión logarítmica* de los trastes (única en una
-  habitación: ninguna manta tiene rayas que se junten según `2^(-n/12)`) y el
-  hecho de que las seis cuerdas convergen hacia un punto de fuga común. El
-  harness ya está para medirlo; hacen falta varias fotos, no una.
+- **Que el detector automático funcione.** F14 usó la primera de las dos pistas
+  anotadas —la *progresión logarítmica* de los trastes, que ninguna manta
+  tiene— y agregó dos anclas físicas: la cejuela es el último alambre, y la
+  escala es dieciséis veces el ancho entre las cuerdas exteriores (esto último
+  es lo que rompe la degeneración de corrimiento y quedó verificado contra una
+  foto real). Con eso dejó de mentir. Pero siete cuadros reales dan siete
+  `null`, y ahora se sabe por qué: **falla en la primera etapa**, los picos de
+  Hough de la habitación se comen los noventa lugares y las líneas de la
+  guitarra no entran nunca. Seguir afinando el ajuste no puede arreglar eso.
+  Lo que hay que cambiar es cómo se propone la región: buscar el diapasón como
+  *región* (oscuro, liso, alargado, con una grilla brillante encima) o barrer
+  direcciones y bandas directamente, porque el perfil de bordes sí encuentra
+  trastes reales cuando se le da la región correcta. La otra pista sigue sin
+  usar: las seis cuerdas convergen a un punto de fuga común, que daría el
+  trapecio verdadero en vez del paralelogramo de hoy.
 - **Cambios cronometrados.** Un metrónomo visual y una lección que exige llegar
   al acorde dentro del tiempo, que es como se practica de verdad.
 - **Ritmo de la mano derecha.** La otra mano está en el cuadro y no se mira.

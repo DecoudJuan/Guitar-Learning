@@ -59,6 +59,8 @@ export class App {
   private detector = new NeckDetector();
   private reader = new FretReader();
   private tracker2 = new NeckTracker();
+  /** When the tracker last tried to take its reference frame. */
+  private anchoredAt = 0;
 
   private start = new StartScreen();
   private calibrator = new Calibrator();
@@ -372,6 +374,21 @@ export class App {
     if (!board || !this.settings.trackNeck || this.calibrator.open) return;
 
     const spec = GUITARS[this.settings.guitar];
+
+    // A neck remembered from a previous session arrives before the camera
+    // does: `restoreCalibration` runs in the constructor, where there is no
+    // frame to take a reference from, so the tracker had no anchors and the
+    // grid sat exactly where it was left, for the whole session. Anchoring
+    // here — the first live frame in which a neck is known — is what makes a
+    // remembered calibration follow the guitar at all. It also picks the
+    // anchors back up if they are ever thrown away.
+    if (!this.tracker2.ready) {
+      if (nowMs - this.anchoredAt < 500) return;
+      this.anchoredAt = nowMs;
+      this.tracker2.anchor(this.video, board, spec);
+      return;
+    }
+
     const corners = this.tracker2.track(this.video, nowMs, spec, board.farFret);
     if (!corners) return;
 
@@ -429,6 +446,12 @@ export class App {
     judgement: ChordJudgement | null,
     hands: HandReading[],
   ) {
+    // While the neck is being marked the picture belongs to the marking. Fret
+    // numbers and chord targets sit exactly where the corners have to be
+    // clicked, and a student cannot click through a number they cannot see
+    // past — so during calibration only the grid and the dots are drawn.
+    const marking = this.calibrator.open;
+
     if (board && this.settings.showFretboard) {
       const spec = GUITARS[this.settings.guitar];
       const lastFret = spec.maxTeachableFret;
@@ -438,19 +461,21 @@ export class App {
       // second fret" is only useful to someone who can already count frets on
       // sight, and the whole point of this app is that they cannot yet.
       const numbers = [];
-      for (let fret = 1; fret <= lastFret; fret++) {
-        const x = fretCentre(fret);
-        numbers.push({
-          at: board.toCamera({ x, y: halfWidthAt(spec, x) * 1.75 }),
-          text: String(fret),
-        });
+      if (!marking) {
+        for (let fret = 1; fret <= lastFret; fret++) {
+          const x = fretCentre(fret);
+          numbers.push({
+            at: board.toCamera({ x, y: halfWidthAt(spec, x) * 1.75 }),
+            text: String(fret),
+          });
+        }
       }
       this.overlay.drawLabels(numbers);
     }
 
-    if (this.settings.showSkeleton) this.overlay.drawHands(hands);
+    if (this.settings.showSkeleton && !marking) this.overlay.drawHands(hands);
 
-    if (board && target && judgement) {
+    if (board && target && judgement && !marking) {
       const layer = chordLayer(board, target, judgement, {
         showNoteNames: this.settings.showNoteNames,
         notation: LOCALES[this.settings.language].notation,
@@ -465,7 +490,10 @@ export class App {
   }
 
   private updateCoach(target: ChordTarget | null, judgement: ChordJudgement | null) {
-    if (!target || !judgement) {
+    // The coach lives at the bottom of the screen and so does the marking
+    // card: both at once is two panels on top of each other, and the lesson
+    // underneath is not the thing being done right now.
+    if (this.calibrator.open || !target || !judgement) {
       this.coach.hide();
       return;
     }

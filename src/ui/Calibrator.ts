@@ -28,12 +28,23 @@ export type CalibratorPhase = "idle" | "marking" | "searching";
 const MIN_FAR_FRET = 5;
 const MAX_FAR_FRET = 19;
 
+/**
+ * Where the card may sit.
+ *
+ * No corner is safe: a guitar can be pointing either way and lie anywhere in
+ * the frame, so wherever this card is parked it will sometimes be sitting on
+ * the very corner that has to be clicked. Rather than guess, the student moves
+ * it — one button, four corners, no dragging to get wrong on a phone.
+ */
+const CORNERS = ["bl", "br", "tr", "tl"] as const;
+
 export class Calibrator {
   private root = requireElement("calibrate");
   private card = requireElement("calibrate-card");
   private points: Point[] = [];
   private phase: CalibratorPhase = "idle";
   private notice = "";
+  private corner = 0;
   private t: Translate | null = null;
 
   /** Which fret the far pair sits on: 12 by hand, whatever the detector saw. */
@@ -75,6 +86,7 @@ export class Calibrator {
     this.phase = "marking";
     this.notice = "";
     this.root.classList.remove("gone");
+    this.applyCorner();
     this.render(t);
   }
 
@@ -82,6 +94,17 @@ export class Calibrator {
     this.phase = "idle";
     this.root.classList.add("gone");
     this.closeHandler?.();
+  }
+
+  /** Parks the card in the next corner, for when it covers what is being marked. */
+  private moveCard(t: Translate) {
+    this.corner = (this.corner + 1) % CORNERS.length;
+    this.applyCorner();
+    this.render(t);
+  }
+
+  private applyCorner() {
+    for (const name of CORNERS) this.root.classList.toggle(`at-${name}`, name === CORNERS[this.corner]);
   }
 
   /** Called by App for every click on the canvas while marking. */
@@ -228,11 +251,14 @@ export class Calibrator {
     reset.disabled = this.points.length === 0;
     reset.addEventListener("click", () => this.reset(t));
 
+    const move = element("button", { className: "ghost", text: t("calibrate.move"), attrs: { type: "button" } });
+    move.addEventListener("click", () => this.moveCard(t));
+
     const done = element("button", { className: "primary", text: t("calibrate.done"), attrs: { type: "button" } });
     done.disabled = this.points.length < 4;
     done.addEventListener("click", () => this.close());
 
-    row.append(auto, flip, undo, reset, done);
+    row.append(auto, flip, undo, reset, move, done);
     this.card.append(row);
   }
 }

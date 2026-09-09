@@ -144,19 +144,45 @@ body {
 }
 
 /* Marking the neck is not a modal: the clicks have to reach the camera behind
-   it, so this layer only occupies the bottom of the screen and lets everything
-   else through. */
+   it, so this layer lets everything through and only the card itself catches
+   the mouse. The card parks in a corner — narrow, and out of the middle, where
+   the neck is — and the student moves it when it still sits on the corner they
+   have to click. */
 #calibrate {
   position: absolute;
-  inset: auto 0 0 0;
+  inset: 0;
   display: grid;
-  justify-items: center;
   padding: 18px;
   pointer-events: none;
 }
 
+#calibrate.at-bl {
+  place-items: end start;
+}
+
+#calibrate.at-br {
+  place-items: end end;
+}
+
+#calibrate.at-tl {
+  place-items: start start;
+}
+
+#calibrate.at-tr {
+  place-items: start end;
+}
+
+/* The tool buttons live along the top edge. */
+#calibrate.at-tl,
+#calibrate.at-tr {
+  padding-top: 64px;
+}
+
 #calibrate .card {
   pointer-events: auto;
+  width: min(400px, 100%);
+  padding: 20px 22px;
+  gap: 11px;
 }
 
 #calibrate .step {

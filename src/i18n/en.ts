@@ -42,6 +42,7 @@ export const enDictionary = {
   "calibrate.fret": "Far pair marked on fret {fret}",
   "calibrate.fret.hint":
     "Do the drawn frets sit on your real ones? If they are spread out or bunched up, change the number until they line up.",
+  "calibrate.move": "Move this card",
   "calibrate.done": "Done",
   "calibrate.saved": "Neck saved.",
   "calibrate.recalibrate": "Mark the neck again",

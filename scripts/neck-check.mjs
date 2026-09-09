@@ -7,11 +7,17 @@
  * at a real guitar in a real room, where it failed completely. Every constant
  * in NeckDetector.ts that has a number in its comment was set by running this.
  *
- * PNG only, 8-bit, decoded here so the repo stays at one dependency.
+ * PNG only, 8-bit, decoded here so the repo stays at one dependency. Camera
+ * frames arrive as JPEG, so convert first — on Windows, without installing
+ * anything:
+ *
+ *   Add-Type -AssemblyName System.Drawing
+ *   $i = [System.Drawing.Image]::FromFile("shot.jpg")
+ *   $i.Save("shot.png", [System.Drawing.Imaging.ImageFormat]::Png)
  */
 import { readFileSync } from "node:fs";
 import { inflateSync } from "node:zlib";
-import { detectInGrey } from "../src/vision/NeckDetector.ts";
+import { detectInGrey, WORK_WIDTH } from "../src/vision/NeckDetector.ts";
 
 function decodePng(path) {
   const buf = readFileSync(path);
@@ -83,7 +89,7 @@ const path = process.argv[2];
 const png = decodePng(path);
 console.log(`image ${png.width}x${png.height}, ${png.channels} channels`);
 
-const { grey, width, height } = greyDownscale(png, 480);
+const { grey, width, height } = greyDownscale(png, WORK_WIDTH);
 const found = detectInGrey(grey, width, height);
 if (!found) {
   console.log("DETECTOR RETURNED NULL");
@@ -92,5 +98,4 @@ if (!found) {
   console.log(`confidence ${found.confidence.toFixed(2)}, far pair called fret ${found.farFret}`);
   console.log(`  nut side   ${px(found.corners[0])}  ${px(found.corners[1])}`);
   console.log(`  far side   ${px(found.corners[2])}  ${px(found.corners[3])}`);
-  console.log("  (in this photo the real nut is near x=1590 and the neck runs left to about x=700)");
 }

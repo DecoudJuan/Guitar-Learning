@@ -31,6 +31,9 @@ npm run preview
 MediaPipe runtime into `public/mediapipe/` (gitignored). A WASM 404 at startup
 means that step did not run.
 
+`npm run fret-check`, `npm run track-check` and `npm run neck-check -- photo.png`
+are the measurement harnesses for the vision maths; they need no camera.
+
 There is no test runner and no linter; `tsc` in strict mode (with
 `noUnusedLocals`/`noUnusedParameters`) is the only automated check. Much of the
 hard logic is deliberately pure so it can be exercised without a camera:
@@ -137,15 +140,38 @@ fit 45 px off, after which the good anchors looked wrong too.
 ### The neck detector — known not to work yet
 
 `vision/NeckDetector.ts` is classic CV on purpose (a second neural model would
-cost megabytes and GPU time competing with the hand tracker), but as of F12 it
-still picks bedding stripes over a fretboard on real photographs, so
-`autoDetect` ships **off**. Do not turn it back on without evidence.
+cost megabytes and GPU time competing with the hand tracker). As of F14 it no
+longer offers junk — it rejects anything striped that has no frets on it, and
+prefers answering nothing — but measured against seven webcam frames of a real
+guitar it returns null on all seven, so `autoDetect` ships **off**. The failure
+is in step one: the room's edges take every Hough peak and the guitar's own
+lines never enter the candidate set (the bands came out 400-575 working pixels
+across, where a neck is about 32). Tuning the fitting cannot fix that; the file
+header says what would. Do not turn it back on without evidence from real
+photographs.
 
-Measure before changing anything here: `detectInGrey` is separate from the
-canvas so `npm run neck-check -- photo.png` runs the whole pipeline against a
-still. Every constant with a number in its comment came from that. The open
-problem is stated in ROADMAP; the untried leads are the logarithmic fret
-progression and the strings sharing a vanishing point.
+What it rests on is that frets are *not* evenly spaced: they crowd by
+`2^(-n/12)`, which no blanket does, and the fit has to beat a straight line
+through the same lines before anything is claimed (`fitFretProgression`). Four
+things there are load-bearing and easy to undo by accident. Hough is used for
+*directions only* — positions come from a one-pixel edge profile, because a
+Hough bin is far too coarse to measure the gaps between frets. That profile is
+read in lanes *across* the direction being measured, so that a line only counts
+if it crosses the whole neck, which is what keeps a fold in a shirt out of the
+fit. Fret positions are invariant to a shift of fret number, so the numbering
+exists only because two things anchor it: the nut is the last wire (real strings
+run bridge to tuners, so where the strings *stop* is not the nut — that mistake
+is in BITACORA), and the scale is about sixteen times the width between the
+outer strings, which is what picks the right shift.
+
+Measure before changing anything here, and never against one case: `detectInGrey`
+is separate from the canvas so `npm run neck-check -- photo.png` runs the whole
+pipeline against a still, `node scripts/scene.mjs <dir>` draws synthetic rooms
+(a neck, a striped blanket, both at once, a hand over the frets), and `npm run
+fret-check` exercises the progression maths on its own. Every constant with a
+number in its comment came from those. The open problem and the one untried
+lead — the strings sharing a vanishing point, which would give the real
+trapezoid instead of today's parallelogram — are in ROADMAP.
 
 Manual calibration is the ground truth, and `guitar/corners.ts` makes it
 independent of click order — a wrong order used to silently transpose the two

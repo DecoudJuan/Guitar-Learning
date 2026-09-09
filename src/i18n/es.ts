@@ -42,6 +42,7 @@ export const esDictionary: Dictionary = {
   "calibrate.fret": "El par lejano está en el traste {fret}",
   "calibrate.fret.hint":
     "¿Los trastes dibujados caen sobre los reales? Si están estirados o apretados, cambiá el número hasta que coincidan.",
+  "calibrate.move": "Mover el cartel",
   "calibrate.done": "Listo",
   "calibrate.saved": "Mástil guardado.",
   "calibrate.recalibrate": "Volver a marcar el mástil",

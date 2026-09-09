@@ -12,6 +12,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "neck-check": "esbuild scripts/neck-check.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/neck-check.mjs --log-level=error && node node_modules/.cache/neck-check.mjs",
+    "fret-check": "esbuild scripts/fret-check.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/fret-check.mjs --log-level=error && node node_modules/.cache/fret-check.mjs",
     "track-check": "esbuild scripts/track-check.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/track-check.mjs --log-level=error && node node_modules/.cache/track-check.mjs"
   },
   "dependencies": {

@@ -306,3 +306,156 @@ está es peor que ninguno.
 
 **Decisión: un null del tracker significa "quedate con lo que tenés".** No es un
 error. Una guitarra tapada por una mano un segundo no puede borrar la lección.
+
+## 2026-09-09 — F14: mientras se marca el mástil, la pantalla es de la marca
+
+Probando con la guitarra de verdad apareció algo obvio recién cuando pasa: al
+volver a calibrar, la pantalla sigue siendo la de la clase. Los números de
+traste, los círculos del acorde y la flecha del dedo quedan justo sobre las
+cuatro esquinas que hay que clickear, y el cartel de la calibración aterriza
+encima del cartel del coach porque los dos viven abajo y al centro.
+
+**Decisión: durante la calibración se dibuja la grilla y los puntos, nada más.**
+Ni números de traste, ni objetivos del acorde, ni esqueleto de la mano. No es
+un problema de estética: un número de traste tiene fondo oscuro y radio de diez
+puntos, así que tapa literalmente el píxel que el alumno quiere marcar. La
+grilla sí se sigue dibujando, porque la pregunta del selector de traste
+("¿caen los trastes dibujados sobre los reales?") se contesta mirándola.
+
+**Decisión: el coach se calla mientras se marca.** No es que estorbe visualmente
+—es que la lección no es lo que está pasando— y además los dos carteles se
+pisaban.
+
+**Decisión: el cartel se mueve, no se adivina.** Ninguna esquina es segura: la
+guitarra puede apuntar para cualquier lado y estar a cualquier altura del
+cuadro, y en la prueba el cartel tapó el punto 3. En vez de elegir un lugar
+"bueno" el cartel es angosto, arranca abajo a la izquierda y hay un botón que
+lo lleva a la siguiente esquina. Un botón y cuatro posiciones antes que
+arrastrar, que en un teléfono sería otra cosa que puede salir mal.
+
+## 2026-09-09 — F14 (2): el mástil remembrado no se seguía, y el detector mentía
+
+Dos reportes de la misma sesión con la guitarra real: "cuando le doy a buscar el
+mástil automáticamente no cambia nada, se mantiene estático, ni lo sigue cuando
+se mueve", y una captura donde *Buscalo vos* dibujó un cuadrilátero cruzando la
+habitación y anunció **mástil encontrado**.
+
+**El bug del seguimiento: la calibración recordada nunca tomaba referencia.** El
+`NeckTracker` toma sus anclas en `acceptCorners`, es decir en el momento en que
+el alumno marca. Pero `restoreCalibration()` corre en el constructor, antes de
+que exista cámara, así que una calibración leída de `localStorage` —o sea
+cualquier recarga de la página, que es el caso normal— dejaba el tracker sin una
+sola ancla, `ready` en false, y `track()` devolviendo null para siempre. La
+grilla quedaba clavada donde se la había dejado la sesión anterior. F13 estaba
+verificada con `track-check` y la matemática estaba bien; lo que faltaba era el
+cable. Ahora `followNeck` toma la referencia en el primer cuadro vivo en que hay
+mástil conocido, y de paso recupera las anclas si alguna vez se tiran.
+
+**El detector: seis rectas paralelas y equiespaciadas no eran nunca la
+evidencia.** Es el patrón de una manta, de un radiador, de una persiana y de las
+costillas de una almohada. La pista que el ROADMAP tenía anotada y sin usar es
+la que separa: los trastes **no** están equiespaciados, se juntan según
+`2^(-n/12)`, y eso no lo hace nada en una habitación.
+
+Lo que se aprendió midiendo (`npm run fret-check`, `node scripts/scene.mjs` +
+`npm run neck-check`), en orden, porque cada paso corrigió al anterior:
+
+- **Tolerar el modelo de trastes no alcanza.** Sobre los primeros cinco trastes
+  los huecos se acortan apenas un 6% cada uno, así que las rayas de una manta
+  entran en cualquier tolerancia que sobreviva a un píxel de ruido: *todos* los
+  casos rayados pasaban. Lo que una manta no puede hacer es ajustar la curva de
+  trastes **mejor que una recta**. Se ajustan los dos modelos y la guitarra
+  tiene que ganar por la mitad (`EVEN_MARGIN`).
+- **La progresión de trastes es invariante al corrimiento de traste.**
+  Renumerar los trastes `n+k` y multiplicar la escala por `2^(k/12)` da
+  exactamente las mismas posiciones: los trastes 1 a 7 ajustan como 4 a 10 con
+  residuo `1e-13`. Se escribió un ajuste con la cejuela libre y **no puede
+  existir**; el número de traste sale sólo si se ancla la cejuela donde las
+  cuerdas terminan. Quedó como chequeo para que nadie lo intente de nuevo.
+- **En un mástil los trastes le ganan la elección de haz a las cuerdas.** Hay
+  diez y son casi equiespaciados, contra seis cuerdas: el haz de cuerdas no
+  entraba ni en los cinco candidatos, y el cuadrilátero salía girado noventa
+  grados. Cada haz se lee ahora dos veces, como cuerdas y como trastes, y el
+  ajuste de trastes elige.
+- **Hough sirve para direcciones y no para medir.** Un pico es un bin: huecos
+  de 7 px salían 22.6, 21.1, 20.7, 16.5, 20.6 — ni progresión ni monótonos, y
+  el detector encontraba el mástil a un ancho de trabajo y lo perdía en el
+  siguiente, que es la firma de un estimador ruidoso y no de una idea
+  equivocada. Las dos direcciones se miden ahora sobre un **perfil de magnitud
+  de borde de un píxel**, con pico sub-pixel por parábola: cada traste aporta
+  cientos de píxeles a su propia posición.
+- **Las proporciones del instrumento son un filtro gratis.** La escala es más
+  de doce veces el ancho del mástil (cejuela 43-52 mm, escala 630-650 mm), y un
+  diapasón se ensancha un tercio pero nunca es una cuña. Eso descartó el último
+  falso positivo, que era una guitarra real leída de costado: sus seis cuerdas
+  convergen por perspectiva, y un haz que converge se junta igual que los
+  trastes.
+
+**Dónde quedó, dicho sin adornos.** Rechaza la manta, encuentra la dirección y
+la cejuela de un mástil dibujado, y estira el extremo lejano más allá de donde
+el mástil termina (lee nueve trastes como quince). O sea: dejó de mentir, todavía
+no acierta. `autoDetect` sigue **apagado** y la calibración a mano sigue siendo
+la verdad. Lo que falta no es otra constante: hacen falta fotos reales, varias,
+porque las escenas sintéticas ya están al límite de lo que pueden enseñar y
+seguir afinando contra ellas es sobreajustar un dibujo.
+
+## 2026-09-09 — F14 (3): siete fotos reales, y lo que dijeron
+
+Siete cuadros de la webcam, la guitarra sobre la falda, en la habitación de
+siempre. Es la evidencia que faltaba y cambió el diagnóstico completo. Sirvieron
+para arreglar tres cosas y para descubrir dónde está el problema de verdad.
+
+**La cejuela no está donde terminan las cuerdas.** El ajuste anclaba la cejuela
+en el extremo del recorrido de las cuerdas, que es cierto en un dibujo y falso
+en una guitarra: las cuerdas van del puente a los clavijeros, así que sus dos
+extremos están en otra parte y la cejuela queda a un cuarto del camino. Lo que
+la cejuela *es*, en una foto, es **el último alambre**: los trastes terminan ahí
+y el clavijero no tiene ninguno. Ahora se prueba cada extremo del grupo de
+alambres como cejuela, y ser el extremo es lo que dice que no hay nada detrás.
+
+**Un traste cruza el mástil entero; un pliegue de remera no.** El perfil de
+bordes contaba cualquier cosa que cayera en la banda, y en una foto real la
+banda cruza toda la imagen: la remera, la almohada, el borde de la cama. Cuarenta
+alambres donde la guitarra tiene doce, y un "mástil" del ancho del cuadro. El
+perfil se mide ahora en cuatro **carriles** a lo ancho y cada bin se queda con
+el *mínimo* de los cuatro: la pregunta pasa a ser "esta línea llega de lado a
+lado", y eso sólo lo contesta un traste. (Con un bug propio en el camino: para
+el haz leído como trastes los carriles estaban partidos a lo *largo*, o sea le
+pedían a cada traste aparecer en todo el largo del mástil, y el perfil devolvía
+cero alambres en todas las fotos.)
+
+**La escala es dieciséis veces el ancho entre las cuerdas exteriores, y eso
+rompe la degeneración de corrimiento.** Un ajuste de trastes encaja igual de
+bien corrido k trastes con la escala multiplicada por `2^(k/12)`, así que los
+alambres solos nunca dicen si el primero es el traste 1 o el 4 — y en las fotos
+el ajuste caía tres trastes corrido, sobre el diapasón correcto, con el ángulo
+correcto y el ancho correcto. El ancho es lo que dice cuál corrimiento es el
+real: 35 mm entre las cuerdas exteriores en la cejuela de una acústica, 43 en
+una clásica, contra escalas de 630-650 mm. **Verificado en la foto 40**: un
+ancho medido de 130 px predice una escala de ~2080 px, y la medida era ~2040.
+De paso mostró que las escenas dibujadas estaban desproporcionadas (mástil a un
+veinticuatroavo de su escala, en vez de un dieciseisavo) — un error del test y
+no de lo testeado, ya corregido en `scripts/scene.mjs`.
+
+**Y el veredicto, que es lo importante: el detector falla en la primera etapa.**
+Con todo lo anterior, las siete fotos dan **null**, y el motivo es medible: en
+ninguna de las siete el buscador de haces (picos de Hough + series
+equiespaciadas) devuelve un haz que sean las cuerdas o los trastes de la
+guitarra. Las bandas candidatas medían 400 a 575 píxeles de trabajo de ancho,
+donde el mástil mide unos 32. Los picos de Hough de una habitación —el borde de
+la cama, el respaldo, la almohada, los pliegues de la remera— se comen los
+noventa lugares disponibles y las líneas de la guitarra no entran. Todo lo que
+viene después estaba trabajando sobre la habitación, y las dos detecciones que
+por un rato parecieron buenas eran suerte: caían sobre el diapasón porque el
+perfil de alambres encuentra los trastes reales *incluso dentro de una banda
+equivocada*.
+
+Esa última frase es la pista para el próximo intento, y es concreta: **la
+búsqueda tiene que manejarla el perfil, no los haces de Hough.** El perfil sabe
+encontrar trastes; lo que no hay es una manera de proponerle la región correcta.
+Buscar primero el diapasón como *región* (lo oscuro, liso y alargado con una
+grilla brillante encima) o barrer direcciones y bandas directamente son las dos
+formas de darle esa región.
+
+`autoDetect` sigue apagado, y con más razón que antes: ahora se sabe que en una
+foto real no llega ni a mirar la guitarra.
