@@ -49,7 +49,16 @@ export interface Settings {
    * wondering *why* the shape is that shape.
    */
   showNoteNames: boolean;
-  /** Try to find the neck automatically instead of using only the calibration. */
+  /**
+   * Try to find the neck automatically when the calibration opens.
+   *
+   * Off by default, and that is a measurement rather than caution: against the
+   * first real photograph the detector ever saw, it locked onto the stripes of
+   * a bed at the bottom of the frame and reported them as a neck with 0.90
+   * confidence. Marking four corners takes five seconds and always works; a
+   * confidently wrong neck costs the student their trust in everything the app
+   * says afterwards. The button stays, for whoever wants to try it.
+   */
   autoDetect: boolean;
 }
 
@@ -66,7 +75,7 @@ export function defaultSettings(): Settings {
     showSkeleton: true,
     showFretboard: true,
     showNoteNames: false,
-    autoDetect: true,
+    autoDetect: false,
   };
 }
 

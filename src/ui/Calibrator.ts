@@ -1,23 +1,32 @@
 /**
- * Marking the neck: four clicks, in a fixed order.
+ * Marking the neck: four clicks.
  *
- * The order is not arbitrary. Going around the quadrilateral — nut thick-E,
- * nut thin-E, 12th thin-E, 12th thick-E — means a half-finished calibration
- * still draws as a sensible shape, and it tells the app which side of the neck
- * is which without asking. A student who marks the corners in the wrong order
- * would otherwise get a fretboard mapped inside out, with every string mirrored
- * and no clue why.
+ * The order asked for is nut thick-E, nut thin-E, far thin-E, far thick-E, but
+ * it is a suggestion rather than a contract — `orderCorners` works the real
+ * order out from the shape of what was clicked, because trusting the order was
+ * a bug that cost a whole session of confusing feedback. See `corners.ts`.
+ *
+ * What cannot be worked out from the shape is which fret the far pair sits on.
+ * A fretboard has corners at its far *end*, not at the 12th fret, and asking
+ * for "the corners of the fretboard" got exactly that — a neck stretched to
+ * nearly twice its length, with every chord's fingers spread across it. So the
+ * marked fret is adjustable, live, against the grid drawn over the real neck.
  *
  * The card explains; the clicking happens on the canvas itself, which App
  * routes here. This class owns the four points and nothing else.
  */
 
 import { renderEmphasis, type Translate, type TranslationKey } from "../i18n";
-import type { Corners } from "../guitar/Fretboard";
+import { orderCorners } from "../guitar/corners";
+import type { CornerKind, Corners } from "../guitar/Fretboard";
 import type { Point } from "../vision/landmarks";
 import { clear, element, requireElement } from "./dom";
 
 export type CalibratorPhase = "idle" | "marking" | "searching";
+
+/** The fret the far pair may be claimed to sit on. */
+const MIN_FAR_FRET = 5;
+const MAX_FAR_FRET = 19;
 
 export class Calibrator {
   private root = requireElement("calibrate");
@@ -29,11 +38,13 @@ export class Calibrator {
 
   /** Which fret the far pair sits on: 12 by hand, whatever the detector saw. */
   private farFret = 12;
-  private doneHandler: ((corners: Corners, farFret: number) => void) | null = null;
+  /** By hand a student marks the wood; the detector can only see the strings. */
+  private cornersAt: CornerKind = "edges";
+  private doneHandler: ((corners: Corners, farFret: number, cornersAt: CornerKind) => void) | null = null;
   private closeHandler: (() => void) | null = null;
   private autoHandler: (() => void) | null = null;
 
-  whenDone(handler: (corners: Corners, farFret: number) => void) {
+  whenDone(handler: (corners: Corners, farFret: number, cornersAt: CornerKind) => void) {
     this.doneHandler = handler;
   }
 
@@ -59,6 +70,7 @@ export class Calibrator {
     if (!keepPoints) {
       this.points = [];
       this.farFret = 12;
+      this.cornersAt = "edges";
     }
     this.phase = "marking";
     this.notice = "";
@@ -77,9 +89,11 @@ export class Calibrator {
     if (this.phase !== "marking" || this.points.length >= 4) return;
     this.points.push(point);
     if (this.points.length === 4) {
-      // Marked by hand means the 12th fret, because that is what was asked for.
-      this.farFret = 12;
-      this.doneHandler?.(this.points.slice(0, 4) as Corners, this.farFret);
+      // Whatever order they arrived in, the shape says which pair is the nut.
+      this.points = orderCorners(this.points.slice(0, 4) as Corners);
+      // Clicked by hand means the edge of the wood, which is what was asked for.
+      this.cornersAt = "edges";
+      this.emit();
     }
     this.render(t);
   }
@@ -91,12 +105,13 @@ export class Calibrator {
     this.render(t);
   }
 
-  setFound(corners: Corners, farFret: number, t: Translate) {
+  setFound(corners: Corners, farFret: number, cornersAt: CornerKind, t: Translate) {
     this.points = [...corners];
     this.farFret = farFret;
+    this.cornersAt = cornersAt;
     this.phase = "marking";
     this.notice = t("calibrate.auto.found");
-    this.doneHandler?.(corners, farFret);
+    this.emit();
     this.render(t);
   }
 
@@ -112,8 +127,28 @@ export class Calibrator {
     if (this.points.length < 4) return;
     const [a, b, c, d] = this.points;
     this.points = [b, a, d, c];
-    this.doneHandler?.(this.points.slice(0, 4) as Corners, this.farFret);
+    this.emit();
     this.render(t);
+  }
+
+  /**
+   * Corrects which fret the far pair was actually put on.
+   *
+   * The grid redraws on the next frame, over the real neck, so this is checked
+   * by looking rather than by trusting: when the drawn wires sit on the real
+   * wires, the number is right.
+   */
+  private nudgeFret(delta: number, t: Translate) {
+    const next = Math.min(MAX_FAR_FRET, Math.max(MIN_FAR_FRET, this.farFret + delta));
+    if (next === this.farFret) return;
+    this.farFret = next;
+    this.emit();
+    this.render(t);
+  }
+
+  private emit() {
+    if (this.points.length < 4) return;
+    this.doneHandler?.(this.points.slice(0, 4) as Corners, this.farFret, this.cornersAt);
   }
 
   setNotFound(t: Translate) {
@@ -134,6 +169,23 @@ export class Calibrator {
     this.render(t);
   }
 
+  /** Which fret the far pair sits on, with a way to correct it. */
+  private fretStepper(t: Translate): HTMLElement {
+    const down = element("button", { className: "ghost", text: "−", attrs: { type: "button" } });
+    down.disabled = this.farFret <= MIN_FAR_FRET;
+    down.addEventListener("click", () => this.nudgeFret(-1, t));
+
+    const up = element("button", { className: "ghost", text: "+", attrs: { type: "button" } });
+    up.disabled = this.farFret >= MAX_FAR_FRET;
+    up.addEventListener("click", () => this.nudgeFret(1, t));
+
+    return element("div", { className: "row stepper" }, [
+      element("span", { text: t("calibrate.fret", { fret: this.farFret }) }),
+      down,
+      up,
+    ]);
+  }
+
   render(t: Translate = this.t ?? (() => "")) {
     this.t = t;
     clear(this.card);
@@ -149,7 +201,11 @@ export class Calibrator {
       step.append(renderEmphasis(t(`calibrate.step.${this.points.length + 1}` as TranslationKey)));
       this.card.append(step, element("p", { className: "quiet", text: t("calibrate.hint") }));
     } else {
-      this.card.append(element("p", { className: "step", text: t("calibrate.saved") }));
+      this.card.append(
+        element("p", { className: "step", text: t("calibrate.saved") }),
+        this.fretStepper(t),
+        element("p", { className: "quiet", text: t("calibrate.fret.hint") }),
+      );
     }
 
     if (this.notice) this.card.append(element("p", { className: "quiet", text: this.notice }));

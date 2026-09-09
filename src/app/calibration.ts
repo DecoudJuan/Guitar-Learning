@@ -11,7 +11,7 @@
  * hostile: four finite numbers in range, or nothing.
  */
 
-import type { Corners } from "../guitar/Fretboard";
+import type { CornerKind, Corners } from "../guitar/Fretboard";
 import type { Point } from "../vision/landmarks";
 import { isGuitarKind, type GuitarKind } from "./settings";
 
@@ -22,6 +22,8 @@ export interface StoredCalibration {
   corners: Corners;
   /** Which fret the far corners sit on — 12 when a student marked them. */
   farFret: number;
+  /** Whether the corners are on the edge of the wood or on the outer strings. */
+  cornersAt: CornerKind;
 }
 
 function isPoint(value: unknown): value is Point {
@@ -67,7 +69,8 @@ export function loadCalibration(): StoredCalibration | null {
     typeof data.farFret === "number" && Number.isFinite(data.farFret)
       ? Math.min(17, Math.max(3, Math.round(data.farFret)))
       : 12;
-  return { guitar: data.guitar, corners, farFret };
+  const cornersAt: CornerKind = data.cornersAt === "strings" ? "strings" : "edges";
+  return { guitar: data.guitar, corners, farFret, cornersAt };
 }
 
 export function saveCalibration(calibration: StoredCalibration) {

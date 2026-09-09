@@ -258,6 +258,22 @@ button.ghost:hover {
   align-items: center;
 }
 
+/* The fret stepper: a label and two small square buttons. */
+.row.stepper {
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.row.stepper button {
+  min-width: 34px;
+  padding: 6px 0;
+  text-align: center;
+  font-size: 15px;
+  line-height: 1;
+}
+
 /* --- Settings panel --- */
 
 #panel {

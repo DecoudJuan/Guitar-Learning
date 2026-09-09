@@ -73,6 +73,12 @@ Panel de ajustes (tipo de guitarra, zurdo/diestro, tolerancia, idioma),
 selector de lección, importación de cifrados para practicar canciones, y la
 guía de calibración. Traducciones completas es/en.
 
+### F12 — Contra una guitarra real ✅ (a medias)
+La calibración manual deja de depender del orden de los clics y el traste
+marcado se corrige contra la grilla. El detector automático se volvió medible
+(`npm run neck-check -- foto.png`) y mejoró mucho por dentro, pero sigue
+eligiendo las rayas de una cama antes que un mástil, así que arranca apagado.
+
 ### F11 — Afinador ✅
 Lo único que la cámara no puede hacer. Micrófono abierto solo mientras el panel
 está abierto, detección de tono por MPM, y las seis cuerdas como una lista que
@@ -91,6 +97,12 @@ Lo que queda anotado como próximo, en orden de valor:
 - **Tests.** La homografía, la geometría de trastes, el juez y el viewport son
   funciones puras esperando un runner. El detector de tono ya se verificó contra
   señales sintéticas a mano; ese chequeo merece dejar de ser un script temporal.
+- **Que el detector automático funcione.** Lo que falta no es afinar una
+  constante: falta separar un mástil de cualquier otra cosa rayada. Las dos
+  pistas sin usar son la *progresión logarítmica* de los trastes (única en una
+  habitación: ninguna manta tiene rayas que se junten según `2^(-n/12)`) y el
+  hecho de que las seis cuerdas convergen hacia un punto de fuga común. El
+  harness ya está para medirlo; hacen falta varias fotos, no una.
 - **Seguir el mástil.** Hoy la calibración es estática: si se mueve la guitarra
   hay que volver a marcarla. El detector ya sabe encontrar el cuadrilátero;
   falta correrlo cada tanto y corregir la homografía en vez de reemplazarla.

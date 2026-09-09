@@ -21,6 +21,7 @@ import {
   fretLine,
   fretWire,
   halfWidthAt,
+  stringOffset,
   positionOf,
   stringLine,
   STRING_COUNT,
@@ -37,6 +38,18 @@ import {
  */
 export type Corners = [Point, Point, Point, Point];
 
+/**
+ * What the four corners are actually on.
+ *
+ * A student clicking the corners of the fretboard marks the *edge of the wood*.
+ * The detector, which finds the neck by finding the strings, can only report
+ * where the outer strings run, and those sit a few millimetres inside the wood.
+ * Three millimetres is a third of a string spacing: small enough to be
+ * invisible, large enough to bias every judgement outwards. Exactly the kind of
+ * difference that has to be said out loud in a type rather than absorbed.
+ */
+export type CornerKind = "edges" | "strings";
+
 /** A quadrilateral this thin is a mis-click, not a neck. */
 const MIN_AREA = 0.004;
 
@@ -46,6 +59,7 @@ export class Fretboard {
     readonly corners: Corners,
     /** Which fret the far pair of corners sits on. Normally the 12th. */
     readonly farFret: number,
+    readonly cornersAt: CornerKind,
     private readonly toImage: Matrix3,
     private readonly toBoardMatrix: Matrix3,
   ) {}
@@ -59,16 +73,21 @@ export class Fretboard {
    * asked to click. The maths does not care which fret it is, only that it
    * knows — so the detector says, instead of pretending it found the 12th.
    */
-  static from(spec: GuitarSpec, corners: Corners, farFret = 12): Fretboard | null {
+  static from(
+    spec: GuitarSpec,
+    corners: Corners,
+    farFret = 12,
+    cornersAt: CornerKind = "edges",
+  ): Fretboard | null {
     if (quadArea(corners) < MIN_AREA) return null;
 
-    const board = Fretboard.boardCorners(spec, farFret);
+    const board = Fretboard.boardCorners(spec, farFret, cornersAt);
     const toImage = homographyFrom(board, corners);
     if (!toImage) return null;
     const toBoardMatrix = invert(toImage);
     if (!toBoardMatrix) return null;
 
-    return new Fretboard(spec, corners, farFret, toImage, toBoardMatrix);
+    return new Fretboard(spec, corners, farFret, cornersAt, toImage, toBoardMatrix);
   }
 
   /**
@@ -78,10 +97,11 @@ export class Fretboard {
    * every guitar, and it is far enough from the nut for the two to pin down
    * the perspective properly.
    */
-  private static boardCorners(spec: GuitarSpec, farFret: number): BoardPoint[] {
+  private static boardCorners(spec: GuitarSpec, farFret: number, cornersAt: CornerKind): BoardPoint[] {
     const farX = fretLine(farFret);
-    const atNut = halfWidthAt(spec, 0);
-    const atFar = halfWidthAt(spec, farX);
+    const across = (x: number) => (cornersAt === "edges" ? halfWidthAt(spec, x) : stringOffset(spec, 6, x));
+    const atNut = across(0);
+    const atFar = across(farX);
     return [
       { x: 0, y: atNut }, // nut, thick E
       { x: 0, y: -atNut }, // nut, thin E

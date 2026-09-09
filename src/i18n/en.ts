@@ -26,7 +26,7 @@ export const enDictionary = {
 
   "calibrate.title": "Mark the neck",
   "calibrate.intro":
-    "Rest the guitar where the camera sees the whole neck, then click the four corners of the fretboard. Once marked, it is remembered.",
+    "Rest the guitar where the camera sees the whole neck, then mark four points: both ends of the nut, and both ends of the 12th fret. The order does not matter — click them however you like.",
   "calibrate.step.1": "Click the **nut**, on the **thick E** side.",
   "calibrate.step.2": "Click the **nut**, on the **thin E** side.",
   "calibrate.step.3": "Click the **12th fret**, on the **thin E** side.",
@@ -39,6 +39,9 @@ export const enDictionary = {
   "calibrate.auto.failed": "Could not find the neck. More light, or mark it by hand.",
   "calibrate.auto.found": "Neck found. Adjust it by hand if it sits wrong.",
   "calibrate.flip": "Flip the sides",
+  "calibrate.fret": "Far pair marked on fret {fret}",
+  "calibrate.fret.hint":
+    "Do the drawn frets sit on your real ones? If they are spread out or bunched up, change the number until they line up.",
   "calibrate.done": "Done",
   "calibrate.saved": "Neck saved.",
   "calibrate.recalibrate": "Mark the neck again",

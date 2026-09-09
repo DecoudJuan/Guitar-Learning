@@ -119,14 +119,22 @@ those measurements, not guessed, and it prefers answering nothing to answering
 wrong. `tuner/strings.ts` maps a pitch to the nearest *open string* in cents —
 a beginner needs "that is your D string", not "F#, 40 cents flat".
 
-### The neck detector
+### The neck detector — known not to work yet
 
-`vision/NeckDetector.ts` is classic CV on purpose — Sobel, PCA for the neck
-axis, a gradient-directed Hough transform, then the outermost line of each
-bundle. A second neural model would cost megabytes and GPU time competing with
-the hand tracker. It runs on demand, never per frame, fails quietly below a
-confidence threshold, and **cannot** tell the thick E side from the thin E side
-(hence the flip button). Manual calibration is the ground truth.
+`vision/NeckDetector.ts` is classic CV on purpose (a second neural model would
+cost megabytes and GPU time competing with the hand tracker), but as of F12 it
+still picks bedding stripes over a fretboard on real photographs, so
+`autoDetect` ships **off**. Do not turn it back on without evidence.
+
+Measure before changing anything here: `detectInGrey` is separate from the
+canvas so `npm run neck-check -- photo.png` runs the whole pipeline against a
+still. Every constant with a number in its comment came from that. The open
+problem is stated in ROADMAP; the untried leads are the logarithmic fret
+progression and the strings sharing a vanishing point.
+
+Manual calibration is the ground truth, and `guitar/corners.ts` makes it
+independent of click order — a wrong order used to silently transpose the two
+axes of the fretboard and spread every chord across the neck.
 
 ## Constraints inherited from SECURITY.md
 

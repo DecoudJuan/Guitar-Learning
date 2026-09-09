@@ -16,7 +16,7 @@
 
 import { chordById, shapesFor, targetOf, type ChordShape, type ChordTarget } from "../guitar/chords";
 import { FretReader, type NeckReading } from "../guitar/FretReader";
-import { Fretboard, type Corners } from "../guitar/Fretboard";
+import { Fretboard, type CornerKind, type Corners } from "../guitar/Fretboard";
 import { GUITARS } from "../guitar/geometry";
 import { firstProblem, judge, type ChordJudgement, type Verdict } from "../guitar/judge";
 import { createTranslator, LOCALES, type Translate, type TranslationKey } from "../i18n";
@@ -99,7 +99,7 @@ export class App {
 
     this.start.whenStarted(() => void this.begin());
 
-    this.calibrator.whenDone((corners, farFret) => this.acceptCorners(corners, farFret));
+    this.calibrator.whenDone((corners, farFret, at) => this.acceptCorners(corners, farFret, at));
     this.calibrator.whenClosed(() => this.stage.classList.remove("calibrating"));
     this.calibrator.whenAutoAsked(() => this.searchForNeck());
 
@@ -177,15 +177,20 @@ export class App {
   private restoreCalibration() {
     const stored = loadCalibration();
     if (!stored || stored.guitar !== this.settings.guitar) return;
-    this.fretboard = Fretboard.from(GUITARS[this.settings.guitar], stored.corners, stored.farFret);
+    this.fretboard = Fretboard.from(
+      GUITARS[this.settings.guitar],
+      stored.corners,
+      stored.farFret,
+      stored.cornersAt,
+    );
   }
 
-  private acceptCorners(corners: Corners, farFret: number) {
-    const board = Fretboard.from(GUITARS[this.settings.guitar], corners, farFret);
+  private acceptCorners(corners: Corners, farFret: number, cornersAt: CornerKind) {
+    const board = Fretboard.from(GUITARS[this.settings.guitar], corners, farFret, cornersAt);
     if (!board) return;
     this.fretboard = board;
     this.reader.reset();
-    saveCalibration({ guitar: this.settings.guitar, corners, farFret });
+    saveCalibration({ guitar: this.settings.guitar, corners, farFret, cornersAt });
   }
 
   private beginCalibration() {
@@ -227,7 +232,7 @@ export class App {
     // frame, and offering it costs more trust than saying nothing.
     if (!found || found.confidence < 0.5) return;
     this.searchingUntil = 0;
-    this.calibrator.setFound(found.corners, found.farFret, this.t);
+    this.calibrator.setFound(found.corners, found.farFret, found.cornersAt, this.t);
   }
 
   private onCanvasClick(event: MouseEvent) {

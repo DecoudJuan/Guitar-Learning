@@ -190,3 +190,74 @@ estaba bien.
 **Decisión: la cuerda tiene que *sostenerse* afinada para tildarse.** Misma
 razón que el acorde: una clavija que pasa por la tensión correcta camino a otro
 lado no es una cuerda afinada.
+
+---
+
+## 2026-09-09 — F12: la primera prueba con una guitarra de verdad
+
+Dos fallas reportadas desde el uso real. Una era mía y grave; la otra sigue
+abierta y ahora está medida.
+
+### Los dedos de un acorde aparecían separados por tres trastes
+
+**Causa.** La calibración confiaba en que el alumno clickeara las cuatro
+esquinas exactamente en el orden pedido. La intro decía "hacé clic en las
+cuatro esquinas del diapasón" —que invita a dar la vuelta al rectángulo— y los
+pasos pedían cejuela-grave, cejuela-agudo, traste12-agudo, traste12-grave. Son
+dos instrucciones distintas. Clickeando en el orden que invita la intro, la
+homografía mapea el eje "a lo ancho del mástil" sobre el eje "a lo largo": la
+grilla se dibuja igual, la app sigue andando, y cada acorde sale con los dedos
+desparramados por medio mástil. **Nada avisa que algo está mal**, que es lo peor
+del asunto.
+
+**Decisión: no depender del orden.** `orderCorners` deduce el orden de la forma
+de lo clickeado, y un mástil se delata solo: es mucho más largo que ancho, así
+que los dos lados *cortos* del cuadrilátero son las puntas; y se abre hacia el
+cuerpo, así que la punta más angosta es la cejuela. Lo único irrecuperable de
+la forma es cuál lado es el mi grave —eso es para qué lado está puesta la
+guitarra, no qué forma tiene— y para eso está el botón de dar vuelta. Verificado
+contra los cuatro órdenes de clic posibles.
+
+**Decisión: el traste marcado es ajustable.** Un diapasón tiene esquinas en su
+*extremo*, no en el traste 12, así que pedir "las esquinas del diapasón"
+consigue exactamente eso: un mástil estirado al doble. Ahora hay un stepper que
+corrige el número contra la grilla dibujada sobre el mástil real. Se verifica
+mirando, no confiando.
+
+### El detector automático no encuentra el mástil
+
+**Qué se hizo.** Se reescribió entero y —más importante— se volvió medible: el
+análisis se separó del canvas (`detectInGrey`) y `scripts/neck-check.mjs` lo
+corre contra una foto fija, con un decodificador PNG propio para no sumar
+dependencias. Todas las constantes que hoy tienen un número en su comentario
+salieron de ahí.
+
+Lo que se aprendió corriendo, en orden:
+
+- **El PCA sobre todos los bordes del cuadro era una fantasía.** El comentario
+  original decía que las cuerdas dominan cualquier foto con una guitarra. No es
+  cierto: una cama, un almohadón y una remera con letras las superan cómodas.
+- **`PEAK_THRESHOLD` a 0.25 del pico máximo dejaba 3 líneas en toda la imagen.**
+  Una cuerda es fina y corta; el borde de una cama la supera muchas veces. A
+  0.05 aparecen sesenta líneas y seis son las cuerdas.
+- **A 320px de ancho las cuerdas caen a 3px y el ángulo sale 10° torcido.** A
+  480px, el mismo cuadro da el ángulo del mástil con un grado de error.
+- **Con umbral global, dentro del mástil quedaban 121 píxeles de borde y cero
+  trastes.** El diapasón es lo más oscuro de una habitación iluminada. Con
+  umbral calculado *dentro* de la banda de las cuerdas, 856.
+- **Los trastes que sí aparecen están todos juntos cerca de la cejuela**, donde
+  pega la luz. Pedirles que definan el largo del mástil daba un "mástil" de 24
+  píxeles, así que el largo pasó a salir de hasta dónde llegan las cuerdas.
+
+**Y sin embargo sigue fallando.** Sobre la foto real, el haz que gana es una
+franja de la cama al fondo del cuadro, casi al mismo ángulo que el mástil. Se
+agregó el discriminador correcto en principio —solo una guitarra tiene rayas en
+las dos direcciones, así que los trastes eligen entre los haces candidatos— y
+la cama igual gana, con confianza 0.90.
+
+**Decisión: `autoDetect` arranca apagado.** Es una medición, no prudencia. Un
+detector que se equivoca con seguridad es peor que uno que no está: marcar
+cuatro esquinas tarda cinco segundos y siempre funciona, mientras que un mástil
+confiadamente mal le cuesta al alumno la confianza en todo lo que la app diga
+después. El botón queda para quien quiera probar, y el harness queda para que el
+próximo intento se pueda medir en vez de suponer.

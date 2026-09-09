@@ -10,7 +10,8 @@
     "dev": "vite",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "neck-check": "esbuild scripts/neck-check.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/neck-check.mjs --log-level=error && node node_modules/.cache/neck-check.mjs"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.22"

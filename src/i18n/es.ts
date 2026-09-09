@@ -26,7 +26,7 @@ export const esDictionary: Dictionary = {
 
   "calibrate.title": "Marcá el mástil",
   "calibrate.intro":
-    "Apoyá la guitarra donde la cámara vea el mástil entero y hacé clic en las cuatro esquinas del diapasón. Una vez marcado, queda guardado.",
+    "Apoyá la guitarra donde la cámara vea el mástil entero y marcá cuatro puntos: los dos extremos de la cejuela y los dos del traste 12. El orden no importa — clickealos como quieras.",
   "calibrate.step.1": "Clic en la **cejuela**, del lado del **mi grave**.",
   "calibrate.step.2": "Clic en la **cejuela**, del lado del **mi agudo**.",
   "calibrate.step.3": "Clic en el **traste 12**, del lado del **mi agudo**.",
@@ -39,6 +39,9 @@ export const esDictionary: Dictionary = {
   "calibrate.auto.failed": "No se encontró el mástil. Más luz, o marcalo a mano.",
   "calibrate.auto.found": "Mástil encontrado. Corregilo a mano si quedó torcido.",
   "calibrate.flip": "Dar vuelta los lados",
+  "calibrate.fret": "El par lejano está en el traste {fret}",
+  "calibrate.fret.hint":
+    "¿Los trastes dibujados caen sobre los reales? Si están estirados o apretados, cambiá el número hasta que coincidan.",
   "calibrate.done": "Listo",
   "calibrate.saved": "Mástil guardado.",
   "calibrate.recalibrate": "Volver a marcar el mástil",
