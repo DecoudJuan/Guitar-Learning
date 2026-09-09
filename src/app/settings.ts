@@ -42,7 +42,12 @@ export interface Settings {
   showSkeleton: boolean;
   /** Draw the detected fretboard grid over the camera. */
   showFretboard: boolean;
-  /** Write the note name (E, A, D…) on each target. */
+  /**
+   * Write the note name (E, A, D…) on each target instead of the finger
+   * number. Off by default: while you are learning a shape, "3" tells your
+   * hand what to do and "G" does not. It is for the student who has started
+   * wondering *why* the shape is that shape.
+   */
   showNoteNames: boolean;
   /** Try to find the neck automatically instead of using only the calibration. */
   autoDetect: boolean;
@@ -60,7 +65,7 @@ export function defaultSettings(): Settings {
     smoothness: 0.55,
     showSkeleton: true,
     showFretboard: true,
-    showNoteNames: true,
+    showNoteNames: false,
     autoDetect: true,
   };
 }
