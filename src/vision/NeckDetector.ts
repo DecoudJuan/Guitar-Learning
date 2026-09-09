@@ -662,7 +662,7 @@ interface Gradients {
 
 /** Sobel over the whole frame, kept as raw fields so any region can be
  *  thresholded on its own terms afterwards. */
-export function gradients(grey: Float32Array, width: number, height: number): Gradients {
+function gradients(grey: Float32Array, width: number, height: number): Gradients {
   const magnitude = new Float32Array(width * height);
   const angle = new Float32Array(width * height);
 
@@ -694,7 +694,7 @@ export function gradients(grey: Float32Array, width: number, height: number): Gr
  * selection*. Passing no filter gives the frame-wide edges; passing the string
  * band gives the fret wires, which are strong locally and invisible globally.
  */
-export function edgesFrom(
+function edgesFrom(
   fields: Gradients,
   width: number,
   height: number,
@@ -725,7 +725,7 @@ export function edgesFrom(
  * That turns the transform from the expensive part of this file into the cheap
  * one, and sharpens the peaks as a side effect.
  */
-export function hough(edges: Edge[], width: number, height: number): HoughLine[] {
+function hough(edges: Edge[], width: number, height: number): HoughLine[] {
   const thetaBins = 180;
   const diagonal = Math.hypot(width, height);
   const rhoBins = Math.ceil(diagonal * 2);
@@ -786,7 +786,7 @@ export function hough(edges: Edge[], width: number, height: number): HoughLine[]
  * six of anything. Every candidate direction is tried, and within each one the
  * best arithmetic progression of line positions wins.
  */
-export function findEvenBundles(lines: HoughLine[], centre: Point, limit = 12): Bundle[] {
+function findEvenBundles(lines: HoughLine[], centre: Point, limit = 12): Bundle[] {
   const spread = toRadians(BUNDLE_SPREAD_DEG);
   const found: Bundle[] = [];
 
@@ -831,7 +831,7 @@ export function findEvenBundles(lines: HoughLine[], centre: Point, limit = 12): 
 }
 
 /** The longest arithmetic progression hiding in a sorted list of positions. */
-export function longestEvenRun(positions: number[]): { indices: number[]; unevenness: number; spacing: number } | null {
+function longestEvenRun(positions: number[]): { indices: number[]; unevenness: number; spacing: number } | null {
   let best: { indices: number[]; unevenness: number; spacing: number } | null = null;
 
   for (let first = 0; first < positions.length - 1; first++) {

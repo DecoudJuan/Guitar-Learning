@@ -63,11 +63,3 @@ export function noteName(midi: number, notation: "letter" | "solfege"): string {
   return notation === "letter" ? letterName(midi) : solfegeName(midi);
 }
 
-/** Turns "A", "Bb", "C#" into a pitch class. Null when it is not a note. */
-export function pitchClassOf(letter: string, accidental = ""): number | null {
-  const base: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
-  const root = base[letter.toUpperCase()];
-  if (root === undefined) return null;
-  const shift = accidental === "#" || accidental === "♯" ? 1 : accidental === "b" || accidental === "♭" ? -1 : 0;
-  return pitchClass(root + shift);
-}

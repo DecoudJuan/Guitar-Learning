@@ -33,8 +33,6 @@ import type { BoardPosition } from "./geometry";
 /** Fingers as guitarists count them: 1 index, 4 pinky. The thumb is not one. */
 export type FingerNumber = 1 | 2 | 3 | 4;
 
-export const FINGER_NUMBERS: FingerNumber[] = [1, 2, 3, 4];
-
 export interface FingerReading {
   finger: FingerNumber;
   /** Where the tip is in the picture, for drawing. */

@@ -13,8 +13,8 @@
  */
 
 import type { ChordQuality } from "../song/parse";
-import { GUITARS, type GuitarSpec } from "./geometry";
-import { LETTER_NAMES, noteAt, pitchClass, SOLFEGE_NAMES } from "./tuning";
+import type { GuitarSpec } from "./geometry";
+import { pitchClass } from "./tuning";
 
 /** A fret entry: a number is a fret (0 is open), `null` means "do not play". */
 type FretEntry = number | null;
@@ -283,29 +283,3 @@ export function targetOf(entry: ChordShape): ChordTarget {
 
   return { shape: entry, placements, open, muted, barre: entry.barre };
 }
-
-/** The notes a shape actually sounds, low to high, for naming them on screen. */
-export function notesOf(entry: ChordShape): { string: number; midi: number }[] {
-  const notes: { string: number; midi: number }[] = [];
-  entry.frets.forEach((fret, index) => {
-    if (fret === null) return;
-    const stringNumber = stringNumberAt(index);
-    notes.push({ string: stringNumber, midi: noteAt(stringNumber, fret) });
-  });
-  return notes;
-}
-
-/** "Am" in English, "Lam" in a solfège locale — the root translated, suffix kept. */
-export function displayName(entry: ChordShape, notation: "letter" | "solfege"): string {
-  if (notation === "letter") return entry.name;
-  const suffix = entry.name.replace(/^[A-G][#b]?/, "");
-  return `${SOLFEGE_NAMES[entry.root]}${suffix}`;
-}
-
-/** Only used to sanity-check the library against itself. */
-export function rootName(entry: ChordShape): string {
-  return LETTER_NAMES[entry.root];
-}
-
-/** The default guitar spec, for callers that have no settings to hand. */
-export const DEFAULT_SPEC = GUITARS.acoustic;

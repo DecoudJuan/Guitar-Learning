@@ -23,8 +23,6 @@ import type { GuitarKind } from "../app/settings";
 
 /** Strings are numbered the way guitarists number them: 1 is the thin E. */
 export const STRING_COUNT = 6;
-export const THIN_E = 1;
-export const THICK_E = 6;
 
 export interface GuitarSpec {
   kind: GuitarKind;
@@ -165,16 +163,4 @@ export function positionOf(spec: GuitarSpec, point: BoardPoint): BoardPosition {
   const stringNumber = across * ((STRING_COUNT - 1) / 2) + (STRING_COUNT + 1) / 2;
 
   return { string: stringNumber, fret: Math.max(0, Math.ceil(wire - 1e-9)), wire };
-}
-
-/** How long the box for a fret is, in scale lengths. Boxes shrink as you climb. */
-export function boxLength(fret: number): number {
-  if (fret <= 0) return fretLine(1);
-  return fretLine(fret) - fretLine(fret - 1);
-}
-
-/** The gap between two neighbouring strings at a given point along the neck. */
-export function stringSpacing(spec: GuitarSpec, x: number): number {
-  const usable = halfWidthAt(spec, x) * (1 - EDGE_MARGIN);
-  return (usable * 2) / (STRING_COUNT - 1);
 }

@@ -22,8 +22,6 @@ export interface Point3 {
 }
 
 export const WRIST = 0;
-export const THUMB_CMC = 1;
-export const THUMB_MCP = 2;
 export const THUMB_IP = 3;
 export const THUMB_TIP = 4;
 export const INDEX_MCP = 5;
@@ -53,8 +51,6 @@ export const BONES: readonly [number, number][] = [
   [13, 17], [17, 18], [18, 19], [19, 20],
   [0, 17],
 ];
-
-export const LANDMARK_COUNT = 21;
 
 export function distance(a: Point, b: Point): number {
   return Math.hypot(a.x - b.x, a.y - b.y);

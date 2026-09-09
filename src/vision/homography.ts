@@ -24,8 +24,6 @@ import type { Point } from "./landmarks";
 /** Row-major 3×3, nine numbers. */
 export type Matrix3 = readonly number[];
 
-export const IDENTITY: Matrix3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
-
 /**
  * The transform taking each `from[i]` to the matching `to[i]`.
  *
