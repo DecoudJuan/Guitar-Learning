@@ -73,6 +73,12 @@ Panel de ajustes (tipo de guitarra, zurdo/diestro, tolerancia, idioma),
 selector de lección, importación de cifrados para practicar canciones, y la
 guía de calibración. Traducciones completas es/en.
 
+### F13 — Registro por homografía ✅
+El mástil se sigue solo cuando la guitarra se mueve: una grilla de anclas sobre
+el diapasón, cada una con su parche de imagen, rastreadas por correlación
+normalizada contra el cuadro de la calibración, y la matriz re-estimada por
+consenso. Verificado con `npm run track-check`.
+
 ### F12 — Contra una guitarra real ✅ (a medias)
 La calibración manual deja de depender del orden de los clics y el traste
 marcado se corrige contra la grilla. El detector automático se volvió medible
@@ -103,9 +109,6 @@ Lo que queda anotado como próximo, en orden de valor:
   habitación: ninguna manta tiene rayas que se junten según `2^(-n/12)`) y el
   hecho de que las seis cuerdas convergen hacia un punto de fuga común. El
   harness ya está para medirlo; hacen falta varias fotos, no una.
-- **Seguir el mástil.** Hoy la calibración es estática: si se mueve la guitarra
-  hay que volver a marcarla. El detector ya sabe encontrar el cuadrilátero;
-  falta correrlo cada tanto y corregir la homografía en vez de reemplazarla.
 - **Cambios cronometrados.** Un metrónomo visual y una lección que exige llegar
   al acorde dentro del tiempo, que es como se practica de verdad.
 - **Ritmo de la mano derecha.** La otra mano está en el cuadro y no se mira.

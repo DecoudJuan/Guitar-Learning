@@ -58,6 +58,7 @@ export const esDictionary: Dictionary = {
   "panel.showSkeleton": "Mostrar la mano",
   "panel.showFretboard": "Mostrar la grilla del diapasón",
   "panel.showNoteNames": "Nombrar las notas",
+  "panel.trackNeck": "Seguir el mástil cuando se mueve",
   "panel.autoDetect": "Buscar el mástil automáticamente",
 
   "guitar.acoustic": "Acústica",

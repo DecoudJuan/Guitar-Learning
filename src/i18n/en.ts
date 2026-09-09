@@ -58,6 +58,7 @@ export const enDictionary = {
   "panel.showSkeleton": "Show the hand",
   "panel.showFretboard": "Show the fretboard grid",
   "panel.showNoteNames": "Name the notes",
+  "panel.trackNeck": "Follow the neck as it moves",
   "panel.autoDetect": "Find the neck automatically",
 
   "guitar.acoustic": "Acoustic",

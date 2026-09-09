@@ -16,6 +16,7 @@
 
 import { chordById, shapesFor, targetOf, type ChordShape, type ChordTarget } from "../guitar/chords";
 import { FretReader, type NeckReading } from "../guitar/FretReader";
+import { NeckTracker } from "../guitar/NeckTracker";
 import { Fretboard, type CornerKind, type Corners } from "../guitar/Fretboard";
 import { fretCentre, GUITARS, halfWidthAt } from "../guitar/geometry";
 import { firstProblem, judge, type ChordJudgement, type Verdict } from "../guitar/judge";
@@ -57,6 +58,7 @@ export class App {
   private tracker = new HandTracker(this.video, { maxHands: 2 });
   private detector = new NeckDetector();
   private reader = new FretReader();
+  private tracker2 = new NeckTracker();
 
   private start = new StartScreen();
   private calibrator = new Calibrator();
@@ -164,6 +166,7 @@ export class App {
         this.fretboard = null;
         clearCalibration();
         this.reader.reset();
+        this.tracker2.forget();
         this.beginCalibration();
         break;
       default:
@@ -191,6 +194,10 @@ export class App {
     this.fretboard = board;
     this.reader.reset();
     saveCalibration({ guitar: this.settings.guitar, corners, farFret, cornersAt });
+
+    // The marked position is also the reference the tracker registers against,
+    // so it is taken now, from the frame the student was looking at.
+    if (this.running) this.tracker2.anchor(this.video, board, GUITARS[this.settings.guitar]);
   }
 
   private beginCalibration() {
@@ -203,6 +210,7 @@ export class App {
     // never left sitting on screen half-replaced by a new one.
     clearCalibration();
     this.fretboard = null;
+    this.tracker2.forget();
     this.stage.classList.add("calibrating");
     this.calibrator.start(this.t);
     if (this.running && this.settings.autoDetect) this.searchForNeck();
@@ -351,12 +359,33 @@ export class App {
     requestAnimationFrame((time) => this.frame(time));
   }
 
+  /**
+   * Registers the calibrated view against the current one, so the grid stays on
+   * the guitar as it moves.
+   *
+   * A null answer means "not confident", not "gone": the previous position
+   * stands. A guitar behind a hand for a second must not blank the lesson, and
+   * a tracker that gives up loudly is worse than one that waits.
+   */
+  private followNeck(nowMs: number) {
+    const board = this.fretboard;
+    if (!board || !this.settings.trackNeck || this.calibrator.open) return;
+
+    const spec = GUITARS[this.settings.guitar];
+    const corners = this.tracker2.track(this.video, nowMs, spec, board.farFret);
+    if (!corners) return;
+
+    const moved = Fretboard.from(spec, corners, board.farFret, board.cornersAt);
+    if (moved) this.fretboard = moved;
+  }
+
   private frame(time: number) {
     if (!this.running) return;
     requestAnimationFrame((next) => this.frame(next));
 
     const hands = this.tracker.read(time);
     if (this.searchingUntil > 0) this.tickSearch(time);
+    this.followNeck(time);
     // The tuner throttles its own analysis; this only has to keep asking.
     this.tunerPanel.tick(time);
 

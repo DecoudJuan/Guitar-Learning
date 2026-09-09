@@ -71,6 +71,7 @@ export class Panel {
         this.check(t, "panel.showSkeleton", "showSkeleton"),
         this.check(t, "panel.showFretboard", "showFretboard"),
         this.check(t, "panel.showNoteNames", "showNoteNames"),
+        this.check(t, "panel.trackNeck", "trackNeck"),
         this.check(t, "panel.autoDetect", "autoDetect"),
       ]),
       this.languageSection(t),
@@ -119,7 +120,7 @@ export class Panel {
     return element("label", { className: "slider" }, [element("span", { text: t(titleKey) }), value, input]);
   }
 
-  private check(t: Translate, titleKey: TranslationKey, key: "showSkeleton" | "showFretboard" | "showNoteNames" | "autoDetect"): HTMLElement {
+  private check(t: Translate, titleKey: TranslationKey, key: "showSkeleton" | "showFretboard" | "showNoteNames" | "autoDetect" | "trackNeck"): HTMLElement {
     const input = element("input", { attrs: { type: "checkbox" } });
     input.checked = this.settings[key];
     input.addEventListener("change", () => {

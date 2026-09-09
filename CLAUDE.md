@@ -119,6 +119,21 @@ those measurements, not guessed, and it prefers answering nothing to answering
 wrong. `tuner/strings.ts` maps a pitch to the nearest *open string* in cents —
 a beginner needs "that is your D string", not "F#, 40 cents flat".
 
+### Neck tracking
+
+`guitar/NeckTracker.ts` keeps the grid on the guitar as it moves: anchors laid
+out in *board* coordinates, a patch of picture kept for each, matched by
+normalised cross-correlation against **the calibration frame** (never the
+previous frame — that drifts), then the homography re-fitted by consensus.
+
+Two things here were established by measurement (`npm run track-check`) and
+must not be undone: the template stays the original, and outliers are found by
+consensus *before* fitting. A plain least-squares fit followed by dropping bad
+residuals was tried and fails badly — three bad anchors in eighteen dragged the
+fit 45 px off, after which the good anchors looked wrong too.
+
+`track()` returning null means "keep the current board", not "error".
+
 ### The neck detector — known not to work yet
 
 `vision/NeckDetector.ts` is classic CV on purpose (a second neural model would

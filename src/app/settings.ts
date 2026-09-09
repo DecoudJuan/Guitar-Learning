@@ -60,6 +60,12 @@ export interface Settings {
    * says afterwards. The button stays, for whoever wants to try it.
    */
   autoDetect: boolean;
+  /**
+   * Follow the neck when the guitar moves, instead of holding the marked
+   * position. On by default: a guitar on a lap drifts within a minute, and
+   * re-marking it every time is not a class.
+   */
+  trackNeck: boolean;
 }
 
 export type SettingKey = keyof Settings;
@@ -76,6 +82,7 @@ export function defaultSettings(): Settings {
     showFretboard: true,
     showNoteNames: false,
     autoDetect: false,
+    trackNeck: true,
   };
 }
 
@@ -163,6 +170,7 @@ export function loadSettings(): Settings {
   settings.showFretboard = readBoolean(data.showFretboard, settings.showFretboard);
   settings.showNoteNames = readBoolean(data.showNoteNames, settings.showNoteNames);
   settings.autoDetect = readBoolean(data.autoDetect, settings.autoDetect);
+  settings.trackNeck = readBoolean(data.trackNeck, settings.trackNeck);
 
   return settings;
 }

@@ -261,3 +261,48 @@ cuatro esquinas tarda cinco segundos y siempre funciona, mientras que un mástil
 confiadamente mal le cuesta al alumno la confianza en todo lo que la app diga
 después. El botón queda para quien quiera probar, y el harness queda para que el
 próximo intento se pueda medir en vez de suponer.
+
+---
+
+## 2026-09-09 — F13: la homografía como registro, no solo como mapeo
+
+**Aclaración que vale la pena dejar escrita.** La homografía ya era el corazón
+del proyecto desde F3: `Fretboard` la usa para convertir el diapasón en la
+imagen y viceversa. Lo que faltaba era el *otro* uso, el de las panorámicas:
+**registro entre dos vistas de la misma escena plana**. Eso es lo que se agregó.
+
+**Decisión: seguir puntos conocidos en vez de volver a detectar.** La
+calibración es una foto de un momento, y una guitarra en la falda no se queda
+en ese momento: se corre al acomodarse, se inclina al buscar una cejilla, y
+para el cuarto acorde la grilla está a centímetros de la madera. La ventaja
+enorme del registro sobre la detección es que ya no hay que *encontrar* el
+mástil — se sabe dónde estaba y dónde debería estar cada punto de él. Es una
+pregunta mucho más chica, y a diferencia del detector no necesita distinguir un
+diapasón de un acolchado.
+
+**Decisión: parches con correlación normalizada, plantilla siempre la
+original.** Dos detalles hacen que no derive y no mienta. NCC en vez de
+diferencia cruda, porque una nube que pasa o una mano que sombrea el mástil
+cambian el brillo de todos los píxeles a la vez y la correlación normalizada
+compara *forma*. Y comparar siempre contra el cuadro en que el alumno calibró,
+nunca contra el cuadro anterior: encadenar cuadros acumula una fracción de
+píxel por vez y en un minuto la grilla se caminó de la guitarra. Contra la
+referencia original no puede derivar — solo puede perder el punto, que es una
+falla que se anuncia sola.
+
+**Decisión: consenso antes que mínimos cuadrados, y esto salió de medirlo.** La
+primera versión ajustaba sobre todos los puntos y después descartaba los que
+no coincidían. El `track-check` mostró que eso no funciona y cómo falla: tres
+anclas malas de dieciocho corrieron el ajuste **45 píxeles**, y desde ahí los
+puntos buenos también parecían malos — se quedó con dos anclas y se rindió.
+Mínimos cuadrados no tiene defensa contra outliers porque está ocupado
+acomodándolos. Con consenso a lo RANSAC —cuatro anclas al azar, medir cuántas
+coinciden, quedarse con el acuerdo más grande y recién ahí ajustar— el mismo
+caso baja a **2,6 píxeles**.
+
+El comentario de encabezado del archivo describía el algoritmo viejo durante
+media hora. Quedó corregido: un comentario que describe un algoritmo que ya no
+está es peor que ninguno.
+
+**Decisión: un null del tracker significa "quedate con lo que tenés".** No es un
+error. Una guitarra tapada por una mano un segundo no puede borrar la lección.

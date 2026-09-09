@@ -55,6 +55,53 @@ export function homographyFrom(from: readonly Point[], to: readonly Point[]): Ma
   return [...solved, 1];
 }
 
+/**
+ * The same transform from *more* than four pairs, in the least-squares sense.
+ *
+ * Four points determine a homography exactly, which is what a calibration is.
+ * Tracking is the other case: a dozen points are followed across the picture,
+ * several are wrong or lost, and the answer wanted is the one that disagrees
+ * least with all of them at once. With four you would have to choose which four
+ * to believe; with twelve the arithmetic chooses.
+ *
+ * Solved through the normal equations. That is the numerically lazy way to do
+ * least squares — the textbook answer is a QR or SVD decomposition — and it is
+ * fine here: eight unknowns over well-spread image coordinates, nowhere near
+ * ill-conditioned enough for the difference to show.
+ */
+export function homographyFromMany(from: readonly Point[], to: readonly Point[]): Matrix3 | null {
+  const count = Math.min(from.length, to.length);
+  if (count < 4) return null;
+  if (count === 4) return homographyFrom(from, to);
+
+  // Two rows per pair, eight unknowns.
+  const rows: number[][] = [];
+  const targets: number[] = [];
+  for (let i = 0; i < count; i++) {
+    const { x, y } = from[i];
+    const { x: u, y: v } = to[i];
+    rows.push([x, y, 1, 0, 0, 0, -u * x, -u * y]);
+    targets.push(u);
+    rows.push([0, 0, 0, x, y, 1, -v * x, -v * y]);
+    targets.push(v);
+  }
+
+  // Normal equations: (AᵀA) h = Aᵀb.
+  const normal: number[][] = Array.from({ length: 8 }, () => new Array<number>(8).fill(0));
+  const right = new Array<number>(8).fill(0);
+  for (let r = 0; r < rows.length; r++) {
+    const row = rows[r];
+    for (let i = 0; i < 8; i++) {
+      right[i] += row[i] * targets[r];
+      for (let j = 0; j < 8; j++) normal[i][j] += row[i] * row[j];
+    }
+  }
+
+  const solved = solve(normal, right);
+  if (!solved) return null;
+  return [...solved, 1];
+}
+
 /** Gaussian elimination with partial pivoting. Null if the system is singular. */
 function solve(a: number[][], b: number[]): number[] | null {
   const n = b.length;
