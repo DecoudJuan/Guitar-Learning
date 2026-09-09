@@ -17,8 +17,15 @@ import { lowestFret } from "../guitar/chords";
 import type { Verdict } from "../guitar/judge";
 import { DIM, GRID_STRONG, INK, RIGHT, TARGET, WRONG } from "../render/palette";
 
-const WIDTH = 128;
-const HEIGHT = 152;
+/**
+ * Big enough to read from a guitar's length away.
+ *
+ * The first size was 128 by 152, which is what a chord box looks like in a
+ * songbook held in your hands. On a laptop across the room, with a guitar in
+ * the way, it is a smudge. Everything inside scales from these two numbers.
+ */
+const WIDTH = 176;
+const HEIGHT = 208;
 const ROWS = 5;
 
 export class Diagram {
@@ -53,10 +60,10 @@ export class Diagram {
     const startFret = lowest <= 1 ? 1 : lowest;
     const showsNut = startFret === 1;
 
-    const left = 22;
-    const right = WIDTH - 14;
-    const top = 30;
-    const bottom = HEIGHT - 14;
+    const left = 30;
+    const right = WIDTH - 18;
+    const top = 40;
+    const bottom = HEIGHT - 18;
     const stringGap = (right - left) / 5;
     const fretGap = (bottom - top) / ROWS;
 
@@ -80,7 +87,7 @@ export class Diagram {
     }
 
     if (showsNut) {
-      context.lineWidth = 4;
+      context.lineWidth = 5;
       context.strokeStyle = INK;
       context.beginPath();
       context.moveTo(left - 2, top);
@@ -88,26 +95,26 @@ export class Diagram {
       context.stroke();
     } else {
       context.fillStyle = DIM;
-      context.font = "11px ui-sans-serif, system-ui, sans-serif";
+      context.font = "14px ui-sans-serif, system-ui, sans-serif";
       context.textAlign = "right";
       context.textBaseline = "middle";
-      context.fillText(String(startFret), left - 6, top + fretGap / 2);
+      context.fillText(String(startFret), left - 8, top + fretGap / 2);
     }
 
     // The marks above the box: open, or don't play.
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.font = "12px ui-sans-serif, system-ui, sans-serif";
+    context.font = "15px ui-sans-serif, system-ui, sans-serif";
     shape.frets.forEach((fret, index) => {
       const x = left + index * stringGap;
       if (fret === null) {
         context.fillStyle = DIM;
-        context.fillText("×", x, top - 12);
+        context.fillText("×", x, top - 16);
       } else if (fret === 0) {
         context.strokeStyle = DIM;
-        context.lineWidth = 1.4;
+        context.lineWidth = 1.6;
         context.beginPath();
-        context.arc(x, top - 12, 4.5, 0, Math.PI * 2);
+        context.arc(x, top - 16, 6, 0, Math.PI * 2);
         context.stroke();
       }
     });
@@ -121,10 +128,10 @@ export class Diagram {
       const y = top + (barre.fret - startFret + 0.5) * fretGap;
       context.fillStyle = colourFor(verdicts?.get(barre.finger));
       context.beginPath();
-      context.roundRect(left + fromIndex * stringGap - 8, y - 8, (toIndex - fromIndex) * stringGap + 16, 16, 8);
+      context.roundRect(left + fromIndex * stringGap - 11, y - 11, (toIndex - fromIndex) * stringGap + 22, 22, 11);
       context.fill();
       context.fillStyle = "#0b0a0f";
-      context.font = "600 11px ui-sans-serif, system-ui, sans-serif";
+      context.font = "600 14px ui-sans-serif, system-ui, sans-serif";
       context.fillText(String(barre.finger), left + fromIndex * stringGap, y);
     }
 
@@ -139,11 +146,11 @@ export class Diagram {
       const y = top + (fret - startFret + 0.5) * fretGap;
       context.fillStyle = colourFor(verdicts?.get(finger));
       context.beginPath();
-      context.arc(x, y, 9, 0, Math.PI * 2);
+      context.arc(x, y, 12, 0, Math.PI * 2);
       context.fill();
 
       context.fillStyle = "#0b0a0f";
-      context.font = "600 11px ui-sans-serif, system-ui, sans-serif";
+      context.font = "600 14px ui-sans-serif, system-ui, sans-serif";
       context.fillText(String(finger), x, y + 0.5);
     });
   }

@@ -375,14 +375,14 @@ button.ghost:hover {
   left: 50%;
   bottom: max(18px, env(safe-area-inset-bottom));
   transform: translateX(-50%);
-  width: min(680px, calc(100vw - 28px));
+  width: min(840px, calc(100vw - 28px));
   display: flex;
-  gap: 16px;
+  gap: 22px;
   align-items: center;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 14px 18px;
+  border-radius: 20px;
+  padding: 18px 22px;
   backdrop-filter: blur(10px);
 }
 
@@ -399,16 +399,16 @@ button.ghost:hover {
 }
 
 .coach-name {
-  font-size: 26px;
+  font-size: 34px;
   font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1;
 }
 
 .coach-line {
-  font-size: 13px;
+  font-size: 17px;
   color: var(--dim);
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .coach-line.right {
@@ -422,7 +422,7 @@ button.ghost:hover {
 .coach-meta {
   display: flex;
   gap: 12px;
-  font-size: 11.5px;
+  font-size: 12.5px;
   color: var(--faint);
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -430,7 +430,7 @@ button.ghost:hover {
 
 /* The hold-to-pass bar: the only moving thing on the strip. */
 .hold {
-  height: 4px;
+  height: 6px;
   border-radius: 999px;
   background: var(--raise);
   overflow: hidden;
