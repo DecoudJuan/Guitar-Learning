@@ -12,10 +12,9 @@ exactly one place: the tuner (`src/tuner/`), because tuning is the one thing a
 camera cannot do. "Acoustic" and "electric"
 are *guitar shapes* (scale length, neck width, reachable frets), never timbres.
 
-It was forked from `manos`, a gesture instrument; the vision pipeline is
-inherited, the entire audio engine was deleted. `BITACORA.md` records why each
-decision was made and `ROADMAP.md` where it is going — read them before large
-changes, and add to `BITACORA.md` when you make one.
+`BITACORA.md` records why each decision was made and `ROADMAP.md` where it is
+going — read them before large changes, and add to `BITACORA.md` when you make
+one.
 
 ## Commands
 
@@ -66,7 +65,7 @@ guitar/    the instrument: geometry, tuning, chord library, Fretboard, FretReade
 lesson/    curriculum, Session (the hold-to-pass state machine), progress
 render/    Overlay (canvas), chordLayer, viewport (the object-fit: cover maths), palette
 ui/        DOM panels: Panel, Coach, Diagram, Calibrator, LessonList, SongPanel, Help
-song/      pasted chord chart -> parsed chords (reused untouched from manos)
+song/      pasted chord chart -> parsed chords
 ```
 
 ### The load-bearing ideas

@@ -156,17 +156,11 @@ only automated gate: `npm run typecheck`.
   That claim is enforced by a Content-Security-Policy, not merely promised —
   details in [SECURITY.md](SECURITY.md).
 
-## Where it came from
-
-This started as [manos](https://github.com/malenitaa/manos), an instrument
-played with bare hands in the air. The audio engine is gone; what was kept is
-the part that was hard to build and applies just as well to watching a hand on a
-fretboard — the tracking pipeline, the One Euro filtering, the hysteresis that
-keeps a discrete reading from flickering, and the discipline of building every
-piece of DOM without `innerHTML`.
+## More on the design
 
 [ROADMAP.md](ROADMAP.md) is where it is going; [BITACORA.md](BITACORA.md) is why
-each decision was made.
+each decision was made, including the measurements that killed ideas that looked
+good on paper.
 
 ## License
 

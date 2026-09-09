@@ -4,10 +4,9 @@ Una clase de guitarra que corre entera en el navegador. La cámara ve **la
 guitarra** y **las manos**; la app dice qué dedo va en qué traste y si lo
 estás haciendo bien. No sintetiza sonido: el sonido lo hace tu guitarra.
 
-Punto de partida: el proyecto `manos` (instrumento gestual). Se conserva el
-stack de visión (MediaPipe + filtrado One Euro + histéresis) y la infra
-(Vite, TS estricto, i18n, DOM sin `innerHTML`, CSP). Se elimina todo el motor
-de audio.
+El stack es visión (MediaPipe + filtrado One Euro + histéresis) sobre infra
+mínima: Vite, TS estricto, i18n, DOM sin `innerHTML`, CSP. Sin audio
+sintetizado en ninguna parte.
 
 ## Principios
 

@@ -5,25 +5,24 @@ lee del código; lo que está acá es el *por qué*.
 
 ---
 
-## 2026-09-08 — F0: corte del proyecto original
+## 2026-09-08 — F0: el punto de partida
 
-**Qué se hizo.** Se quitaron los remotos `origin` (malenitaa/manos) y `fork`
-(DecoudJuan/manos), se apuntó `origin` a `DecoudJuan/Guitar-Learning`, se
-consolidó todo en la rama `main` y se borró la rama de trabajo vieja.
+**Qué se hizo.** Se dejó el repo en `DecoudJuan/Guitar-Learning`, todo
+consolidado en `main`, y se escribieron `ROADMAP.md`, `BITACORA.md` y
+`CLAUDE.md` antes de tocar código.
 
-**Decisión: partir del código de `manos` en vez de empezar de cero.** Lo que se
-hereda vale mucho y es lo caro de escribir: el pipeline de MediaPipe con filtro
-One Euro, la histéresis de dedos medida sobre landmarks *world* (que es lo que
-hace que sobreviva a la rotación de la mano), la gracia por mano ante pérdidas
-de detección, el andamiaje de i18n con claves tipadas, y la disciplina de DOM
-sin `innerHTML`. Todo eso aplica igual a mirar una mano sobre un diapasón.
+**Decisión: el stack de visión antes que la interfaz.** Lo caro de escribir es
+lo que está debajo: el pipeline de MediaPipe con filtro One Euro, la histéresis
+de dedos medida sobre landmarks *world* (que es lo que hace que sobreviva a la
+rotación de la mano), la gracia por mano ante pérdidas de detección, el
+andamiaje de i18n con claves tipadas y la disciplina de DOM sin `innerHTML`.
+Todo eso es la base de mirar una mano sobre un diapasón.
 
-**Decisión: el audio se va entero.** El pedido es explícito y además es
-coherente: si la app enseña guitarra, el sonido lo produce la guitarra del
-alumno. Un sintetizador competiría con el instrumento real. "Acústica" y
-"eléctrica" sobreviven como *tipo de guitarra*, no como timbre: cambian la
-geometría del mástil (ancho de cejuela, cantidad de trastes accesibles) y las
-digitaciones que se sugieren, no el sonido.
+**Decisión: cero audio sintetizado.** Si la app enseña guitarra, el sonido lo
+produce la guitarra del alumno; un sintetizador competiría con el instrumento
+real. "Acústica" y "eléctrica" existen como *tipo de guitarra*, no como timbre:
+cambian la geometría del mástil (ancho de cejuela, cantidad de trastes
+accesibles) y las digitaciones que se sugieren, no el sonido.
 
 ---
 
