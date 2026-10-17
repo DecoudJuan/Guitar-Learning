@@ -129,7 +129,14 @@ ideas that were measured and thrown away.
   slider. A fingertip is wider than a string and the projection has error, so
   the strict end is still not merciless.
 
-## Getting it running
+## Stack
+
+- TypeScript 5.9 (strict) and Vite 7, no UI framework.
+- `@mediapipe/tasks-vision` ^0.10.22 for hand tracking, run on the GPU in the browser; its WASM runtime is copied into `public/mediapipe/` by `npm run copy-wasm`.
+- Browser APIs: `getUserMedia` (camera, and the microphone for the tuner), canvas, Web Audio, `localStorage`.
+- Hosting: Vercel, as a static site.
+
+## Local setup
 
 ```bash
 npm install
@@ -156,11 +163,22 @@ only automated gate: `npm run typecheck`.
   That claim is enforced by a Content-Security-Policy, not merely promised —
   details in [SECURITY.md](SECURITY.md).
 
-## More on the design
+## Deploy
 
-[ROADMAP.md](ROADMAP.md) is where it is going; [BITACORA.md](BITACORA.md) is why
-each decision was made, including the measurements that killed ideas that looked
-good on paper.
+Live at <https://guitar-learning-ten.vercel.app>, on Vercel, served from the
+domain root (`base: "/"`). `npm run build` type-checks and produces a static
+`dist/`; Vercel builds it and serves it with the headers in
+[`vercel.json`](vercel.json) (Content-Security-Policy, Permissions-Policy, HSTS
+and others), which are what the privacy claims above rest on. There are no
+environment variables or secrets.
+
+## Docs
+
+- [docs/architecture.md](docs/architecture.md): how the code is laid out and why.
+- [BITACORA.md](BITACORA.md): why each decision was made, including the measurements that killed ideas that looked good on paper.
+- [ROADMAP.md](ROADMAP.md): where it is going.
+- [SECURITY.md](SECURITY.md): exactly what the code touches in your browser.
+- [CLAUDE.md](CLAUDE.md): guidance for working on the code with Claude Code.
 
 ## License
 

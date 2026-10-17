@@ -199,3 +199,8 @@ axes of the fretboard and spread every chord across the neck.
 missing Spanish string is a compile error. Add English first. Locales also pick
 note notation (`letter` for en, `solfege` for es). Emphasis is written with
 `**asterisks**` and rendered via `renderEmphasis` — never as markup.
+
+## Commits and PRs
+
+Commits y PRs sin atribución a Claude: nada de `Co-Authored-By: Claude` ni
+"Generated with Claude Code".
